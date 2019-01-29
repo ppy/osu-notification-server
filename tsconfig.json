@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["es2015"],
+    "noImplicitAny": true,
+    "outDir": "build",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true
+  },
+  "files": [
+    "src/index.ts",
+    "src/vendor.d.ts"
+  ]
+}

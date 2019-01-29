@@ -1,0 +1,29 @@
+{
+  "private": true,
+  "scripts": {
+    "lint": "tslint --fix -c tslint.json 'src/**/*.ts'",
+    "serve": "node build/index.js",
+    "watch": "tsc --watch"
+  },
+  "name": "osu-web-streaming",
+  "license": "MIT",
+  "dependencies": {
+    "@types/cookie": "^0.3.2",
+    "@types/dotenv": "^6.1.0",
+    "@types/jsonwebtoken": "^8.3.0",
+    "@types/mysql2": "types/mysql2",
+    "@types/node": "^10.12.19",
+    "@types/redis": "^2.8.10",
+    "@types/ws": "^6.0.1",
+    "cookie": "^0.3.1",
+    "dotenv": "^6.2.0",
+    "jsonwebtoken": "^8.4.0",
+    "mysql2": "^1.6.4",
+    "php-serialize": "^2.1.0",
+    "redis": "^2.8.0",
+    "source-map-support": "^0.5.10",
+    "tslint": "^5.12.1",
+    "typescript": "^3.2.4",
+    "ws": "^6.1.3"
+  }
+}
