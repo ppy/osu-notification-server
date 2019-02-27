@@ -8,6 +8,7 @@ import * as url from "url";
 import * as WebSocket from "ws";
 import LaravelSession from "./laravel-session";
 import RedisSubscriber from "./redis-subscriber";
+import UserConnection from "./user-connection";
 
 interface OAuthJWT {
     aud: string;
@@ -26,11 +27,7 @@ const redisSubscriber = new RedisSubscriber();
 const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_PORT;
 const wss = new WebSocket.Server({port});
 
-const createMessageCallback = (ws: WebSocket) => (channel: string, message: string) => {
-    ws.send(JSON.stringify({ channel, message: JSON.parse(message) }));
-};
-
-const pool = mysql.createPool({
+const db = mysql.createPool({
     host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT == null ? undefined : +process.env.DB_PORT,
 
@@ -86,7 +83,7 @@ const verifyOAuthToken = async (req: http.IncomingMessage) => {
         return;
     }
 
-    const [rows, fields] = await pool.execute(`
+    const [rows, fields] = await db.execute(`
         SELECT user_id, scopes
         FROM oauth_access_tokens
         WHERE revoked = false AND expires_at > now() AND id = ?
@@ -134,12 +131,7 @@ wss.on("connection", async (ws: WebSocket, req: http.IncomingMessage) => {
         return;
     }
 
-    const messageCallback = createMessageCallback(ws);
+    const connection = new UserConnection(userId, {db, redisSubscriber, ws});
 
-    redisSubscriber.subscribe("global", messageCallback);
-    redisSubscriber.subscribe(`user:${userId}`, messageCallback);
-
-    ws.on("close", () => {
-        redisSubscriber.unsubscribeAll(messageCallback);
-    });
+    connection.boot();
 });

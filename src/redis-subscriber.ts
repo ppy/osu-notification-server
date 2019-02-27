@@ -1,55 +1,55 @@
 import * as redis from "redis";
-import MessageCallback from "./types/message-callback";
+import UserConnection from "./user-connection";
 
-interface MessageCallbacks {
-    [key: string]: MessageCallback[];
+interface UserConnections {
+    [key: string]: UserConnection[];
 }
 
 export default class RedisSubscriber {
-    private messageCallbacks: MessageCallbacks;
+    private userConnections: UserConnections;
     private redis: redis.RedisClient;
 
     constructor() {
         this.redis = redis.createClient();
         this.redis.on("message", (channel: string, message: string) => {
-            if (this.messageCallbacks[channel] == null) {
+            if (this.userConnections[channel] == null) {
                 return;
             }
 
-            this.messageCallbacks[channel].forEach((callback) => callback(channel, message));
+            this.userConnections[channel].forEach((connection) => connection.event(channel, message));
         });
 
-        this.messageCallbacks = {};
+        this.userConnections = {};
     }
 
-    public subscribe(channel: string, callback: MessageCallback) {
-        if (this.messageCallbacks[channel] == null) {
-            this.messageCallbacks[channel] = [];
+    public subscribe(channel: string, connection: UserConnection) {
+        if (this.userConnections[channel] == null) {
+            this.userConnections[channel] = [];
         }
 
-        if (this.messageCallbacks[channel].length === 0) {
+        if (this.userConnections[channel].length === 0) {
             this.redis.subscribe(channel);
         }
 
-        this.messageCallbacks[channel].push(callback);
+        this.userConnections[channel].push(connection);
     }
 
-    public unsubscribe(channel: string, callback: MessageCallback) {
-        if (this.messageCallbacks[channel].length === 0) {
+    public unsubscribe(channel: string, connection: UserConnection) {
+        if (this.userConnections[channel].length === 0) {
             return;
         }
 
-        this.messageCallbacks[channel] = this.messageCallbacks[channel]
-            .filter((regCallback: MessageCallback) => regCallback !== callback);
+        this.userConnections[channel] = this.userConnections[channel]
+            .filter((regConnection: UserConnection) => regConnection !== connection);
 
-        if (this.messageCallbacks[channel].length === 0) {
+        if (this.userConnections[channel].length === 0) {
             this.redis.unsubscribe(channel);
         }
     }
 
-    public unsubscribeAll(callback: MessageCallback) {
-        for (const channel of Object.keys(this.messageCallbacks)) {
-            this.unsubscribe(channel, callback);
+    public unsubscribeAll(connection: UserConnection) {
+        for (const channel of Object.keys(this.userConnections)) {
+            this.unsubscribe(channel, connection);
         }
     }
 }
