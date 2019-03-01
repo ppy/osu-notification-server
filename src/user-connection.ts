@@ -19,12 +19,20 @@ export default class UserConnection {
     }
 
     public event = (channel: string, message: string) => {
-        "x";
+        switch (channel) {
+            case this.subscriptionUpdateChannel():
+                this.updateSubscription(message);
+                break;
+        }
     }
 
     public subscribe = async () => {
         const subscriptions = await this.subscriptions();
         this.config.redisSubscriber.subscribe(subscriptions, this);
+    }
+
+    public subscriptionUpdateChannel = () => {
+        return `user_subscription:${this.userId}`;
     }
 
     public subscriptions = async () => {
@@ -35,8 +43,16 @@ export default class UserConnection {
 
         ret.push(...await forumTopic);
         ret.push(...await beatmapset);
+        ret.push(this.subscriptionUpdateChannel());
 
         return ret;
+    }
+
+    public updateSubscription = (message: string) => {
+        const data = JSON.parse(message).data;
+        const action = data.action === "remove" ? "unsubscribe" : "subscribe";
+
+        this.config.redisSubscriber[action](data.channel, this);
     }
 
     private beatmapsetSubscriptions = async () => {
