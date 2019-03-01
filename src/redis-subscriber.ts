@@ -27,29 +27,49 @@ export default class RedisSubscriber {
         this.userConnections = {};
     }
 
-    public subscribe(channel: string, connection: UserConnection) {
-        if (this.userConnections[channel] == null) {
-            this.userConnections[channel] = [];
+    public subscribe(channels: string | string[], connection: UserConnection) {
+        const toSubscribe = [];
+
+        if (typeof channels === "string") {
+            channels = [channels];
         }
 
-        if (this.userConnections[channel].length === 0) {
-            this.redis.subscribe(channel);
+        for (const channel of channels) {
+            if (this.userConnections[channel] == null) {
+                this.userConnections[channel] = [];
+            }
+
+            if (this.userConnections[channel].length === 0) {
+                toSubscribe.push(channel);
+            }
+
+            this.userConnections[channel].push(connection);
         }
 
-        this.userConnections[channel].push(connection);
+        this.redis.subscribe(...toSubscribe);
     }
 
-    public unsubscribe(channel: string, connection: UserConnection) {
-        if (this.userConnections[channel].length === 0) {
-            return;
+    public unsubscribe(channels: string | string[], connection: UserConnection) {
+        const toUnsubscribe = [];
+
+        if (typeof channels === "string") {
+            channels = [channels];
         }
 
-        this.userConnections[channel] = this.userConnections[channel]
-            .filter((regConnection: UserConnection) => regConnection !== connection);
+        for (const channel of channels) {
+            if (this.userConnections[channel].length === 0) {
+                continue;
+            }
 
-        if (this.userConnections[channel].length === 0) {
-            this.redis.unsubscribe(channel);
+            this.userConnections[channel] = this.userConnections[channel]
+                .filter((regConnection: UserConnection) => regConnection !== connection);
+
+            if (this.userConnections[channel].length === 0) {
+                toUnsubscribe.push(channel);
+            }
         }
+
+        this.redis.unsubscribe(...toUnsubscribe);
     }
 
     public unsubscribeAll(connection: UserConnection) {
