@@ -23,7 +23,10 @@ const env = process.env.APP_ENV || "development";
 dotenv.config({path: `${__dirname}/../.env.${env}`});
 dotenv.config({path: `${__dirname}/../.env`});
 
-const redisSubscriber = new RedisSubscriber();
+const redisSubscriber = new RedisSubscriber({
+    host: process.env.REDIS_HOST_BROADCAST,
+    port: process.env.REDIS_PORT_BROADCAST == null ? 6379 : +process.env.REDIS_PORT_BROADCAST,
+});
 const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_PORT;
 const wss = new WebSocket.Server({port});
 

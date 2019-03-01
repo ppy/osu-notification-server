@@ -1,6 +1,11 @@
 import * as redis from "redis";
 import UserConnection from "./user-connection";
 
+interface Config {
+    host?: string;
+    port?: number;
+}
+
 interface UserConnections {
     [key: string]: UserConnection[];
 }
@@ -9,8 +14,8 @@ export default class RedisSubscriber {
     private userConnections: UserConnections;
     private redis: redis.RedisClient;
 
-    constructor() {
-        this.redis = redis.createClient();
+    constructor(config: Config) {
+        this.redis = redis.createClient(config);
         this.redis.on("message", (channel: string, message: string) => {
             if (this.userConnections[channel] == null) {
                 return;
