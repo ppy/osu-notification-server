@@ -1,9 +1,10 @@
 {
   "private": true,
   "scripts": {
+    "build": "tsc",
     "lint": "tslint --fix -c tslint.json 'src/**/*.ts'",
     "serve": "node build/index.js",
-    "watch": "tsc --watch"
+    "watch": "yarn run build --watch"
   },
   "name": "osu-notification-server",
   "license": "AGPL-3.0",
