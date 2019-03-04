@@ -5,8 +5,8 @@
     "serve": "node build/index.js",
     "watch": "tsc --watch"
   },
-  "name": "osu-web-streaming",
-  "license": "MIT",
+  "name": "osu-notification-server",
+  "license": "AGPL-3.0",
   "dependencies": {
     "@types/cookie": "^0.3.2",
     "@types/dotenv": "^6.1.0",
