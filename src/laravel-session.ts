@@ -25,128 +25,128 @@ import * as url from "url";
 import {promisify} from "util";
 
 interface EncryptedSession {
-    iv: string;
-    mac: string;
-    value: string;
+  iv: string;
+  mac: string;
+  value: string;
 }
 
 interface Session {
-    csrf: string;
-    userId: number;
+  csrf: string;
+  userId: number;
 }
 
 const isEncryptedSession = (arg: any): arg is EncryptedSession => {
-    if (typeof arg !== "object") {
-        return false;
-    }
+  if (typeof arg !== "object") {
+    return false;
+  }
 
-    return typeof arg.iv === "string" &&
-        typeof arg.value === "string" &&
-        typeof arg.mac === "string";
+  return typeof arg.iv === "string" &&
+    typeof arg.value === "string" &&
+    typeof arg.mac === "string";
 };
 
 const getCookie = (req: http.IncomingMessage, key: string) => {
-    if (req.headers.cookie != null) {
-        return cookie.parse(req.headers.cookie)[key];
-    }
+  if (req.headers.cookie != null) {
+    return cookie.parse(req.headers.cookie)[key];
+  }
 };
 
 export default class LaravelSession {
-    private redis: redis.RedisClient;
-    private key: Buffer;
-    private redisGet: any;
+  private redis: redis.RedisClient;
+  private key: Buffer;
+  private redisGet: any;
 
-    constructor() {
-        this.redis = redis.createClient();
-        this.redisGet = promisify(this.redis.get).bind(this.redis);
+  constructor() {
+    this.redis = redis.createClient();
+    this.redisGet = promisify(this.redis.get).bind(this.redis);
 
-        if (process.env.APP_KEY == null) {
-            throw new Error("APP_KEY environment variable is not set.");
-        }
-
-        this.key = Buffer.from(process.env.APP_KEY.slice("base64:".length), "base64");
+    if (process.env.APP_KEY == null) {
+      throw new Error("APP_KEY environment variable is not set.");
     }
 
-    public async verifyRequest(req: http.IncomingMessage) {
-        if (req.url == null) {
-            return;
-        }
+    this.key = Buffer.from(process.env.APP_KEY.slice("base64:".length), "base64");
+  }
 
-        const session = await this.getSessionDataFromRequest(req);
-        let csrf;
-
-        const params = url.parse(req.url, true).query;
-
-        if (typeof params.csrf !== "string") {
-            return;
-        }
-
-        csrf = Buffer.from(params.csrf);
-
-        let hasValidToken;
-
-        try {
-            hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
-        } catch (err) {
-            // failed comparison check
-            return;
-        }
-
-        if (hasValidToken) {
-            return session.userId;
-        }
+  public async verifyRequest(req: http.IncomingMessage) {
+    if (req.url == null) {
+      return;
     }
 
-    public async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session> {
-        const key = `osu-next:${this.keyFromSession(getCookie(req, "osu_session"))}`;
+    const session = await this.getSessionDataFromRequest(req);
+    let csrf;
 
-        const serializedData = await this.redisGet(key);
+    const params = url.parse(req.url, true).query;
 
-        const rawData = unserialize(unserialize(serializedData), {}, {strict: false});
-
-        return {
-            csrf: rawData._token,
-            // login_<authName>_<hashedAuthClass>
-            userId: rawData.login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d,
-        };
+    if (typeof params.csrf !== "string") {
+      return;
     }
 
-    public keyFromSession(session: string = "") {
-        let encryptedSession;
-        try {
-            encryptedSession = JSON.parse(
-                Buffer.from(session, "base64").toString(),
-            );
-        } catch (err) {
-            throw new Error("Failed parsing session data");
-        }
+    csrf = Buffer.from(params.csrf);
 
-        if (!isEncryptedSession(encryptedSession)) {
-            throw new Error("Session data is missing required fields");
-        }
+    let hasValidToken;
 
-        this.verifyHmac(encryptedSession);
-
-        return this.decrypt(encryptedSession);
+    try {
+      hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
+    } catch (err) {
+      // failed comparison check
+      return;
     }
 
-    private decrypt(encryptedSession: EncryptedSession) {
-        const iv = Buffer.from(encryptedSession.iv, "base64");
-        const value = Buffer.from(encryptedSession.value, "base64");
-        const decrypter = crypto.createDecipheriv("AES-256-CBC", this.key, iv);
+    if (hasValidToken) {
+      return session.userId;
+    }
+  }
 
-        return Buffer.concat([decrypter.update(value), decrypter.final()]).toString();
+  public async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session> {
+    const key = `osu-next:${this.keyFromSession(getCookie(req, "osu_session"))}`;
+
+    const serializedData = await this.redisGet(key);
+
+    const rawData = unserialize(unserialize(serializedData), {}, {strict: false});
+
+    return {
+      csrf: rawData._token,
+      // login_<authName>_<hashedAuthClass>
+      userId: rawData.login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d,
+    };
+  }
+
+  public keyFromSession(session: string = "") {
+    let encryptedSession;
+    try {
+      encryptedSession = JSON.parse(
+        Buffer.from(session, "base64").toString(),
+      );
+    } catch (err) {
+      throw new Error("Failed parsing session data");
     }
 
-    private verifyHmac(session: EncryptedSession) {
-        const reference = Buffer.from(session.mac, "hex");
-        const computed = crypto
-            .createHmac("sha256", this.key)
-            .update(`${session.iv}${session.value}`)
-            .digest();
-
-        if (!crypto.timingSafeEqual(computed, reference)) {
-            throw new Error("Session data failed HMAC verification");
-        }
+    if (!isEncryptedSession(encryptedSession)) {
+      throw new Error("Session data is missing required fields");
     }
+
+    this.verifyHmac(encryptedSession);
+
+    return this.decrypt(encryptedSession);
+  }
+
+  private decrypt(encryptedSession: EncryptedSession) {
+    const iv = Buffer.from(encryptedSession.iv, "base64");
+    const value = Buffer.from(encryptedSession.value, "base64");
+    const decrypter = crypto.createDecipheriv("AES-256-CBC", this.key, iv);
+
+    return Buffer.concat([decrypter.update(value), decrypter.final()]).toString();
+  }
+
+  private verifyHmac(session: EncryptedSession) {
+    const reference = Buffer.from(session.mac, "hex");
+    const computed = crypto
+      .createHmac("sha256", this.key)
+      .update(`${session.iv}${session.value}`)
+      .digest();
+
+    if (!crypto.timingSafeEqual(computed, reference)) {
+      throw new Error("Session data failed HMAC verification");
+    }
+  }
 }
