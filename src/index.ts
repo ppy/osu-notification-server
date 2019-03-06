@@ -65,6 +65,15 @@ const db = mysql.createPool({
   database: process.env.DB_DATABASE || "osu",
 });
 
+if (typeof process.env.APP_KEY !== "string") {
+  throw new Error("APP_KEY environment variable is not set.");
+}
+const laravelSession = new LaravelSession({
+  appKey: process.env.APP_KEY,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT == null ? 6379 : +process.env.REDIS_PORT,
+});
+
 const oAuthTokenSignatureKey = fs.readFileSync(`${baseDir}/oauth-public.key`);
 const isOAuthJWT = (arg: object|string): arg is OAuthJWT => {
   return typeof arg === "object";
@@ -136,9 +145,7 @@ const verifyOAuthToken = async (req: http.IncomingMessage) => {
 const getUserId = async (req: http.IncomingMessage) => {
   let userId = await verifyOAuthToken(req);
   if (userId == null) {
-    const session = new LaravelSession();
-
-    userId = await session.verifyRequest(req);
+    userId = await laravelSession.verifyRequest(req);
   }
 
   if (userId == null) {

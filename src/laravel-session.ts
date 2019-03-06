@@ -24,6 +24,12 @@ import * as redis from "redis";
 import * as url from "url";
 import {promisify} from "util";
 
+interface Config {
+  appKey: string;
+  host?: string;
+  port?: number;
+}
+
 interface EncryptedSession {
   iv: string;
   mac: string;
@@ -56,15 +62,18 @@ export default class LaravelSession {
   private key: Buffer;
   private redisGet: any;
 
-  constructor() {
-    this.redis = redis.createClient();
+  constructor(config: Config) {
+    this.redis = redis.createClient({
+      host: config.host,
+      port: config.port,
+    });
     this.redisGet = promisify(this.redis.get).bind(this.redis);
 
     if (process.env.APP_KEY == null) {
       throw new Error("APP_KEY environment variable is not set.");
     }
 
-    this.key = Buffer.from(process.env.APP_KEY.slice("base64:".length), "base64");
+    this.key = Buffer.from(config.appKey.slice("base64:".length), "base64");
   }
 
   public async verifyRequest(req: http.IncomingMessage) {
