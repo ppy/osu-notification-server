@@ -21,6 +21,7 @@ import * as fs from "fs";
 import * as http from "http";
 import * as jwt from "jsonwebtoken";
 import * as mysql from "mysql2/promise";
+import * as path from "path";
 import "source-map-support/register";
 import * as url from "url";
 import * as WebSocket from "ws";
@@ -40,7 +41,7 @@ interface OAuthJWT {
 let baseDir = process.env.WEBSOCKET_BASEDIR;
 
 if (baseDir == null) {
-  const baseDir = path.resolve(`${__dirname}/..`);
+  baseDir = path.resolve(`${__dirname}/..`);
 }
 
 const env = process.env.APP_ENV || "development";
