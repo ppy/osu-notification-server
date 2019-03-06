@@ -68,11 +68,6 @@ export default class LaravelSession {
       port: config.port,
     });
     this.redisGet = promisify(this.redis.get).bind(this.redis);
-
-    if (process.env.APP_KEY == null) {
-      throw new Error("APP_KEY environment variable is not set.");
-    }
-
     this.key = Buffer.from(config.appKey.slice("base64:".length), "base64");
   }
 
