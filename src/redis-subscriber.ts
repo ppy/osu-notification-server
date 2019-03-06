@@ -93,8 +93,4 @@ export default class RedisSubscriber {
 
     this.redis.unsubscribe(...toUnsubscribe);
   }
-
-  public unsubscribeAll(connection: UserConnection) {
-    this.unsubscribe(null, connection);
-  }
 }

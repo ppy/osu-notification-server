@@ -33,7 +33,7 @@ export default class UserConnection {
   }
 
   public close = () => {
-    this.config.redisSubscriber.unsubscribeAll(this);
+    this.config.redisSubscriber.unsubscribe(null, this);
   }
 
   public event = (channel: string, message: string) => {
