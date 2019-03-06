@@ -67,11 +67,15 @@ export default class RedisSubscriber {
     this.redis.subscribe(...toSubscribe);
   }
 
-  public unsubscribe(channels: string | string[], connection: UserConnection) {
+  public unsubscribe(channels: string | string[] | null, connection: UserConnection) {
     const toUnsubscribe = [];
 
     if (typeof channels === "string") {
       channels = [channels];
+    }
+
+    if (channels == null) {
+      channels = Object.keys(this.userConnections);
     }
 
     for (const channel of channels) {
@@ -91,8 +95,6 @@ export default class RedisSubscriber {
   }
 
   public unsubscribeAll(connection: UserConnection) {
-    for (const channel of Object.keys(this.userConnections)) {
-      this.unsubscribe(channel, connection);
-    }
+    this.unsubscribe(null, connection);
   }
 }
