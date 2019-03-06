@@ -16,13 +16,13 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as cookie from "cookie";
-import * as crypto from "crypto";
-import * as http from "http";
-import {unserialize} from "php-serialize";
-import * as redis from "redis";
-import * as url from "url";
-import {promisify} from "util";
+import * as cookie from 'cookie';
+import * as crypto from 'crypto';
+import * as http from 'http';
+import {unserialize} from 'php-serialize';
+import * as redis from 'redis';
+import * as url from 'url';
+import {promisify} from 'util';
 
 interface Config {
   appKey: string;
@@ -42,13 +42,13 @@ interface Session {
 }
 
 const isEncryptedSession = (arg: any): arg is EncryptedSession => {
-  if (typeof arg !== "object") {
+  if (typeof arg !== 'object') {
     return false;
   }
 
-  return typeof arg.iv === "string" &&
-    typeof arg.value === "string" &&
-    typeof arg.mac === "string";
+  return typeof arg.iv === 'string' &&
+    typeof arg.value === 'string' &&
+    typeof arg.mac === 'string';
 };
 
 const getCookie = (req: http.IncomingMessage, key: string) => {
@@ -68,7 +68,7 @@ export default class LaravelSession {
       port: config.port,
     });
     this.redisGet = promisify(this.redis.get).bind(this.redis);
-    this.key = Buffer.from(config.appKey.slice("base64:".length), "base64");
+    this.key = Buffer.from(config.appKey.slice('base64:'.length), 'base64');
   }
 
   public async verifyRequest(req: http.IncomingMessage) {
@@ -81,7 +81,7 @@ export default class LaravelSession {
 
     const params = url.parse(req.url, true).query;
 
-    if (typeof params.csrf !== "string") {
+    if (typeof params.csrf !== 'string') {
       return;
     }
 
@@ -102,7 +102,7 @@ export default class LaravelSession {
   }
 
   public async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session> {
-    const key = `osu-next:${this.keyFromSession(getCookie(req, "osu_session"))}`;
+    const key = `osu-next:${this.keyFromSession(getCookie(req, 'osu_session'))}`;
 
     const serializedData = await this.redisGet(key);
 
@@ -115,18 +115,18 @@ export default class LaravelSession {
     };
   }
 
-  public keyFromSession(session: string = "") {
+  public keyFromSession(session: string = '') {
     let encryptedSession;
     try {
       encryptedSession = JSON.parse(
-        Buffer.from(session, "base64").toString(),
+        Buffer.from(session, 'base64').toString(),
       );
     } catch (err) {
-      throw new Error("Failed parsing session data");
+      throw new Error('Failed parsing session data');
     }
 
     if (!isEncryptedSession(encryptedSession)) {
-      throw new Error("Session data is missing required fields");
+      throw new Error('Session data is missing required fields');
     }
 
     this.verifyHmac(encryptedSession);
@@ -135,22 +135,22 @@ export default class LaravelSession {
   }
 
   private decrypt(encryptedSession: EncryptedSession) {
-    const iv = Buffer.from(encryptedSession.iv, "base64");
-    const value = Buffer.from(encryptedSession.value, "base64");
-    const decrypter = crypto.createDecipheriv("AES-256-CBC", this.key, iv);
+    const iv = Buffer.from(encryptedSession.iv, 'base64');
+    const value = Buffer.from(encryptedSession.value, 'base64');
+    const decrypter = crypto.createDecipheriv('AES-256-CBC', this.key, iv);
 
     return Buffer.concat([decrypter.update(value), decrypter.final()]).toString();
   }
 
   private verifyHmac(session: EncryptedSession) {
-    const reference = Buffer.from(session.mac, "hex");
+    const reference = Buffer.from(session.mac, 'hex');
     const computed = crypto
-      .createHmac("sha256", this.key)
+      .createHmac('sha256', this.key)
       .update(`${session.iv}${session.value}`)
       .digest();
 
     if (!crypto.timingSafeEqual(computed, reference)) {
-      throw new Error("Session data failed HMAC verification");
+      throw new Error('Session data failed HMAC verification');
     }
   }
 }

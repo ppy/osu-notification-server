@@ -5,8 +5,10 @@
     ],
     "jsRules": {},
     "rules": {
-      "indent": [true, "spaces", 4],
-      "interface-name": false
+      "indent": [true, "spaces", 2],
+      "interface-name": false,
+      "no-console": false,
+      "quotemark": [true, "single"]
     },
     "rulesDirectory": []
 }

@@ -16,8 +16,8 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as redis from "redis";
-import UserConnection from "./user-connection";
+import * as redis from 'redis';
+import UserConnection from './user-connection';
 
 interface Config {
   host?: string;
@@ -34,7 +34,7 @@ export default class RedisSubscriber {
 
   constructor(config: Config) {
     this.redis = redis.createClient(config);
-    this.redis.on("message", (channel: string, message: string) => {
+    this.redis.on('message', (channel: string, message: string) => {
       if (this.userConnections[channel] == null) {
         return;
       }
@@ -48,7 +48,7 @@ export default class RedisSubscriber {
   public subscribe(channels: string | string[], connection: UserConnection) {
     const toSubscribe = [];
 
-    if (typeof channels === "string") {
+    if (typeof channels === 'string') {
       channels = [channels];
     }
 
@@ -70,7 +70,7 @@ export default class RedisSubscriber {
   public unsubscribe(channels: string | string[] | null, connection: UserConnection) {
     const toUnsubscribe = [];
 
-    if (typeof channels === "string") {
+    if (typeof channels === 'string') {
       channels = [channels];
     }
 

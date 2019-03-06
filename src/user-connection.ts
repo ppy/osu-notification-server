@@ -16,7 +16,7 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import UserConnectionConfig from "./types/user-connection-config";
+import UserConnectionConfig from './types/user-connection-config';
 
 export default class UserConnection {
   private config: UserConnectionConfig;
@@ -29,7 +29,7 @@ export default class UserConnection {
 
   public boot = () => {
     this.subscribe();
-    this.config.ws.on("close", this.close);
+    this.config.ws.on('close', this.close);
   }
 
   public close = () => {
@@ -68,7 +68,7 @@ export default class UserConnection {
 
   public updateSubscription = (message: string) => {
     const data = JSON.parse(message).data;
-    const action = data.action === "remove" ? "unsubscribe" : "subscribe";
+    const action = data.action === 'remove' ? 'unsubscribe' : 'subscribe';
 
     this.config.redisSubscriber[action](data.channel, this);
   }

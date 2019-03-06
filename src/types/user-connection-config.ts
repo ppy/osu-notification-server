@@ -16,9 +16,9 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as mysql from "mysql2/promise";
-import * as WebSocket from "ws";
-import RedisSubscriber from "../redis-subscriber";
+import * as mysql from 'mysql2/promise';
+import * as WebSocket from 'ws';
+import RedisSubscriber from '../redis-subscriber';
 
 export default interface UserConnectionConfig {
   db: mysql.Pool;
