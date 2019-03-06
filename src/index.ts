@@ -37,9 +37,15 @@ interface OAuthJWT {
   scopes: string[];
 }
 
+let baseDir = process.env.WEBSOCKET_BASEDIR;
+
+if (baseDir == null) {
+  const baseDir = path.resolve(`${__dirname}/..`);
+}
+
 const env = process.env.APP_ENV || "development";
-dotenv.config({path: `${__dirname}/../.env.${env}`});
-dotenv.config({path: `${__dirname}/../.env`});
+dotenv.config({path: `${baseDir}/.env.${env}`});
+dotenv.config({path: `${baseDir}/.env`});
 
 const redisSubscriber = new RedisSubscriber({
   host: process.env.REDIS_HOST_BROADCAST,
@@ -58,7 +64,7 @@ const db = mysql.createPool({
   database: process.env.DB_DATABASE || "osu",
 });
 
-const oAuthTokenSignatureKey = fs.readFileSync(`${__dirname}/../oauth-public.key`);
+const oAuthTokenSignatureKey = fs.readFileSync(`${baseDir}/oauth-public.key`);
 const isOAuthJWT = (arg: object|string): arg is OAuthJWT => {
   return typeof arg === "object";
 };
