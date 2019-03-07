@@ -46,11 +46,11 @@ export default class RedisSubscriber {
   }
 
   public subscribe(channels: string | string[], connection: UserConnection) {
-    const toSubscribe = [];
-
     if (!Array.isArray(channels)) {
       channels = [channels];
     }
+
+    const toSubscribe = [];
 
     for (const channel of channels) {
       if (this.userConnections[channel] == null) {
@@ -68,8 +68,6 @@ export default class RedisSubscriber {
   }
 
   public unsubscribe(channels: string | string[] | null, connection: UserConnection) {
-    const toUnsubscribe = [];
-
     if (channels == null) {
       channels = Object.keys(this.userConnections);
     }
@@ -77,6 +75,8 @@ export default class RedisSubscriber {
     if (!Array.isArray(channels)) {
       channels = [channels];
     }
+
+    const toUnsubscribe = [];
 
     for (const channel of channels) {
       if (this.userConnections[channel].length === 0) {
