@@ -20,6 +20,7 @@ import UserConnectionConfig from './types/user-connection-config';
 
 export default class UserConnection {
   private config: UserConnectionConfig;
+  private pingTimeout?: NodeJS.Timeout;
   private userId: number;
 
   constructor(userId: number, config: UserConnectionConfig) {
@@ -30,10 +31,22 @@ export default class UserConnection {
   public boot = () => {
     this.subscribe();
     this.config.ws.on('close', this.close);
+    this.config.ws.on('pong', this.delayedPing);
+    this.delayedPing();
   }
 
   public close = () => {
     this.config.redisSubscriber.unsubscribe(null, this);
+
+    if (this.pingTimeout != null) {
+      clearTimeout(this.pingTimeout);
+    }
+  }
+
+  public delayedPing = () => {
+    this.pingTimeout = setTimeout(() => {
+      this.config.ws.ping();
+    }, 10000);
   }
 
   public event = (channel: string, message: string) => {
