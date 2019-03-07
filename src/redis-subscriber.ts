@@ -48,7 +48,7 @@ export default class RedisSubscriber {
   public subscribe(channels: string | string[], connection: UserConnection) {
     const toSubscribe = [];
 
-    if (typeof channels === 'string') {
+    if (!Array.isArray(channels)) {
       channels = [channels];
     }
 
