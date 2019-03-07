@@ -70,12 +70,12 @@ export default class RedisSubscriber {
   public unsubscribe(channels: string | string[] | null, connection: UserConnection) {
     const toUnsubscribe = [];
 
-    if (typeof channels === 'string') {
-      channels = [channels];
-    }
-
     if (channels == null) {
       channels = Object.keys(this.userConnections);
+    }
+
+    if (!Array.isArray(channels)) {
+      channels = [channels];
     }
 
     for (const channel of channels) {
