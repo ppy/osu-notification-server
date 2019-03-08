@@ -25,7 +25,7 @@ interface Config {
 }
 
 interface UserConnections {
-  [key: string]: UserConnection[];
+  [key: string]: Set<UserConnection>;
 }
 
 export default class RedisSubscriber {
@@ -54,14 +54,14 @@ export default class RedisSubscriber {
 
     for (const channel of channels) {
       if (this.userConnections[channel] == null) {
-        this.userConnections[channel] = [];
+        this.userConnections[channel] = new Set();
       }
 
-      if (this.userConnections[channel].length === 0) {
+      if (this.userConnections[channel].size === 0) {
         toSubscribe.push(channel);
       }
 
-      this.userConnections[channel].push(connection);
+      this.userConnections[channel].add(connection);
     }
 
     this.redis.subscribe(...toSubscribe);
@@ -79,14 +79,13 @@ export default class RedisSubscriber {
     const toUnsubscribe = [];
 
     for (const channel of channels) {
-      if (this.userConnections[channel].length === 0) {
+      if (this.userConnections[channel].size === 0) {
         continue;
       }
 
-      this.userConnections[channel] = this.userConnections[channel]
-        .filter((regConnection: UserConnection) => regConnection !== connection);
+      this.userConnections[channel].delete(connection);
 
-      if (this.userConnections[channel].length === 0) {
+      if (this.userConnections[channel].size === 0) {
         toUnsubscribe.push(channel);
       }
     }
