@@ -59,6 +59,10 @@ export default class UserConnection {
     }
   }
 
+  public markReadChannel = () => {
+    return `notification_read:${this.userId}`;
+  }
+
   public subscribe = async () => {
     const subscriptions = await this.subscriptions();
     this.config.redisSubscriber.subscribe(subscriptions, this);
@@ -76,6 +80,7 @@ export default class UserConnection {
 
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
+    ret.push(this.markReadChannel());
     ret.push(this.subscriptionUpdateChannel());
 
     return ret;
