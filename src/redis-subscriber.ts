@@ -64,7 +64,9 @@ export default class RedisSubscriber {
       this.userConnections[channel].add(connection);
     }
 
-    this.redis.subscribe(...toSubscribe);
+    if (toSubscribe.length > 0) {
+      this.redis.subscribe(...toSubscribe);
+    }
   }
 
   public unsubscribe(channels: string | string[] | null, connection: UserConnection) {
@@ -90,6 +92,8 @@ export default class RedisSubscriber {
       }
     }
 
-    this.redis.unsubscribe(...toUnsubscribe);
+    if (toUnsubscribe.length > 0) {
+      this.redis.unsubscribe(...toUnsubscribe);
+    }
   }
 }
