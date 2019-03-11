@@ -101,7 +101,7 @@ export default class UserConnection {
     `, [this.userId]);
 
     return rows.map((row: any) => {
-      return `beatmapset:${row.beatmapset_id}`;
+      return `new:beatmapset:${row.beatmapset_id}`;
     });
   }
 
@@ -113,7 +113,7 @@ export default class UserConnection {
     `, [this.userId]);
 
     return rows.map((row: any) => {
-      return `forum_topic:${row.topic_id}`;
+      return `new:forum_topic:${row.topic_id}`;
     });
   }
 }
