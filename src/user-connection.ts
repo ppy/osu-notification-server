@@ -54,6 +54,8 @@ export default class UserConnection {
       case this.subscriptionUpdateChannel():
         this.updateSubscription(message);
         break;
+      default:
+        this.config.ws.send(message);
     }
   }
 
