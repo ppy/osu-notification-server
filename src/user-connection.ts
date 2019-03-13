@@ -28,14 +28,14 @@ export default class UserConnection {
     this.userId = userId;
   }
 
-  public boot = () => {
+  boot = () => {
     this.subscribe();
     this.config.ws.on('close', this.close);
     this.config.ws.on('pong', this.delayedPing);
     this.delayedPing();
   }
 
-  public close = () => {
+  close = () => {
     this.config.redisSubscriber.unsubscribe(null, this);
 
     if (this.pingTimeout != null) {
@@ -43,13 +43,13 @@ export default class UserConnection {
     }
   }
 
-  public delayedPing = () => {
+  delayedPing = () => {
     this.pingTimeout = setTimeout(() => {
       this.config.ws.ping();
     }, 10000);
   }
 
-  public event = (channel: string, message: string) => {
+  event = (channel: string, message: string) => {
     switch (channel) {
       case this.subscriptionUpdateChannel():
         this.updateSubscription(message);
@@ -59,20 +59,20 @@ export default class UserConnection {
     }
   }
 
-  public markReadChannel = () => {
+  markReadChannel = () => {
     return `notification_read:${this.userId}`;
   }
 
-  public subscribe = async () => {
+  subscribe = async () => {
     const subscriptions = await this.subscriptions();
     this.config.redisSubscriber.subscribe(subscriptions, this);
   }
 
-  public subscriptionUpdateChannel = () => {
+  subscriptionUpdateChannel = () => {
     return `user_subscription:${this.userId}`;
   }
 
-  public subscriptions = async () => {
+  subscriptions = async () => {
     const ret = [];
 
     const forumTopic = this.forumTopicSubscriptions();
@@ -86,7 +86,7 @@ export default class UserConnection {
     return ret;
   }
 
-  public updateSubscription = (message: string) => {
+  updateSubscription = (message: string) => {
     const data = JSON.parse(message).data;
     const action = data.action === 'remove' ? 'unsubscribe' : 'subscribe';
 

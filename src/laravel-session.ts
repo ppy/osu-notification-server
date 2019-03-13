@@ -71,7 +71,7 @@ export default class LaravelSession {
     this.key = Buffer.from(config.appKey.slice('base64:'.length), 'base64');
   }
 
-  public async verifyRequest(req: http.IncomingMessage) {
+  async verifyRequest(req: http.IncomingMessage) {
     if (req.url == null) {
       return;
     }
@@ -101,7 +101,7 @@ export default class LaravelSession {
     }
   }
 
-  public async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session> {
+  async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session> {
     const key = `osu-next:${this.keyFromSession(getCookie(req, 'osu_session'))}`;
 
     const serializedData = await this.redisGet(key);
@@ -115,7 +115,7 @@ export default class LaravelSession {
     };
   }
 
-  public keyFromSession(session: string = '') {
+  keyFromSession(session: string = '') {
     let encryptedSession;
     try {
       encryptedSession = JSON.parse(

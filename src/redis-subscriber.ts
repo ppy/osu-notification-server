@@ -45,7 +45,7 @@ export default class RedisSubscriber {
     this.userConnections = {};
   }
 
-  public subscribe(channels: string | string[], connection: UserConnection) {
+  subscribe(channels: string | string[], connection: UserConnection) {
     if (!Array.isArray(channels)) {
       channels = [channels];
     }
@@ -69,7 +69,7 @@ export default class RedisSubscriber {
     }
   }
 
-  public unsubscribe(channels: string | string[] | null, connection: UserConnection) {
+  unsubscribe(channels: string | string[] | null, connection: UserConnection) {
     if (channels == null) {
       channels = Object.keys(this.userConnections);
     }
