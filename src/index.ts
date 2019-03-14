@@ -27,47 +27,7 @@ import OAuthVerifier from './oauth-verifier';
 import RedisSubscriber from './redis-subscriber';
 import UserConnection from './user-connection';
 
-let baseDir = process.env.WEBSOCKET_BASEDIR;
-
-if (baseDir == null) {
-  baseDir = path.resolve(`${__dirname}/..`);
-}
-
-const env = process.env.APP_ENV || 'development';
-dotenv.config({path: `${baseDir}/.env.${env}`});
-dotenv.config({path: `${baseDir}/.env`});
-
-const redisSubscriber = new RedisSubscriber({
-  host: process.env.REDIS_HOST_BROADCAST,
-  port: process.env.REDIS_PORT_BROADCAST == null ? 6379 : +process.env.REDIS_PORT_BROADCAST,
-});
-const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_PORT;
-const wss = new WebSocket.Server({port});
-
-const db = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT == null ? undefined : +process.env.DB_PORT,
-
-  password: process.env.DB_PASSWORD,
-  user: process.env.DB_USERNAME || 'osuweb',
-
-  database: process.env.DB_DATABASE || 'osu',
-});
-
-if (typeof process.env.APP_KEY !== 'string') {
-  throw new Error('APP_KEY environment variable is not set.');
-}
-const laravelSession = new LaravelSession({
-  appKey: process.env.APP_KEY,
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT == null ? 6379 : +process.env.REDIS_PORT,
-});
-
-const oAuthVerifier = new OAuthVerifier({
-  baseDir,
-  db,
-});
-
+// helper functions
 const getUserId = async (req: http.IncomingMessage) => {
   let userId = await oAuthVerifier.verifyRequest(req);
 
@@ -81,6 +41,52 @@ const getUserId = async (req: http.IncomingMessage) => {
 
   return userId;
 };
+
+// env loading
+let baseDir = process.env.WEBSOCKET_BASEDIR;
+
+if (baseDir == null) {
+  baseDir = path.resolve(`${__dirname}/..`);
+}
+
+const env = process.env.APP_ENV || 'development';
+dotenv.config({path: `${baseDir}/.env.${env}`});
+dotenv.config({path: `${baseDir}/.env`});
+
+if (typeof process.env.APP_KEY !== 'string') {
+  throw new Error('APP_KEY environment variable is not set.');
+}
+
+// variables
+const db = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT == null ? undefined : +process.env.DB_PORT,
+
+  password: process.env.DB_PASSWORD,
+  user: process.env.DB_USERNAME || 'osuweb',
+
+  database: process.env.DB_DATABASE || 'osu',
+});
+
+const redisSubscriber = new RedisSubscriber({
+  host: process.env.REDIS_HOST_BROADCAST,
+  port: process.env.REDIS_PORT_BROADCAST == null ? 6379 : +process.env.REDIS_PORT_BROADCAST,
+});
+
+const oAuthVerifier = new OAuthVerifier({
+  baseDir,
+  db,
+});
+
+const laravelSession = new LaravelSession({
+  appKey: process.env.APP_KEY,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT == null ? 6379 : +process.env.REDIS_PORT,
+});
+
+// initialise server
+const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_PORT;
+const wss = new WebSocket.Server({port});
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   let userId;
