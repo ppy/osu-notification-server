@@ -16,7 +16,15 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import UserConnectionConfig from './types/user-connection-config';
+import * as mysql from 'mysql2/promise';
+import * as WebSocket from 'ws';
+import RedisSubscriber from './redis-subscriber';
+
+interface UserConnectionConfig {
+  db: mysql.Pool;
+  redisSubscriber: RedisSubscriber;
+  ws: WebSocket;
+}
 
 export default class UserConnection {
   private config: UserConnectionConfig;
