@@ -5,7 +5,8 @@
     "outDir": "build",
     "sourceMap": true,
     "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "typeRoots": ["./node_modules/@types"]
   },
   "files": [
     "src/index.ts",
