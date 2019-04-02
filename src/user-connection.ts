@@ -53,7 +53,9 @@ export default class UserConnection {
 
   delayedPing = () => {
     this.pingTimeout = setTimeout(() => {
-      this.config.ws.ping();
+      if (this.config.ws.readyState === WebSocket.OPEN) {
+        this.config.ws.ping();
+      }
     }, 10000);
   }
 
