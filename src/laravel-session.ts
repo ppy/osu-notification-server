@@ -78,8 +78,12 @@ export default class LaravelSession {
     }
 
     const session = await this.getSessionDataFromRequest(req);
-    let csrf;
 
+    if (session.userId == null) {
+      return;
+    }
+
+    let csrf;
     const params = url.parse(req.url, true).query;
 
     if (typeof params.csrf !== 'string') {
