@@ -31,7 +31,9 @@ interface UserSession {
   userId: number;
 }
 
-function ignoreError() { };
+function ignoreError() {
+  // do nothing with the error
+}
 
 export default class UserConnection {
   private config: UserConnectionConfig;
