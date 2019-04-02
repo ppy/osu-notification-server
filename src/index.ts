@@ -28,18 +28,18 @@ import RedisSubscriber from './redis-subscriber';
 import UserConnection from './user-connection';
 
 // helper functions
-const getUserId = async (req: http.IncomingMessage) => {
-  let userId = await oAuthVerifier.verifyRequest(req);
+const getUserSession = async (req: http.IncomingMessage) => {
+  let userSession = await oAuthVerifier.verifyRequest(req);
 
-  if (userId == null) {
-    userId = await laravelSession.verifyRequest(req);
+  if (userSession == null) {
+    userSession = await laravelSession.verifyRequest(req);
   }
 
-  if (userId == null) {
+  if (userSession == null) {
     throw new Error('Authentication failed');
   }
 
-  return userId;
+  return userSession;
 };
 
 // env loading
@@ -89,17 +89,17 @@ const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_
 const wss = new WebSocket.Server({port});
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
-  let userId;
+  let userSession;
 
   try {
-    userId = await getUserId(req);
+    userSession = await getUserSession(req);
   } catch (err) {
     ws.send('authentication failed');
     ws.close();
     return;
   }
 
-  const connection = new UserConnection(userId, {db, redisSubscriber, ws});
+  const connection = new UserConnection(userSession, {db, redisSubscriber, ws});
 
   connection.boot();
 });

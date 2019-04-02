@@ -26,14 +26,19 @@ interface UserConnectionConfig {
   ws: WebSocket;
 }
 
+interface UserSession {
+  key: string;
+  userId: number;
+}
+
 export default class UserConnection {
   private config: UserConnectionConfig;
   private pingTimeout?: NodeJS.Timeout;
-  private userId: number;
+  private session: UserSession;
 
-  constructor(userId: number, config: UserConnectionConfig) {
+  constructor(session: UserSession, config: UserConnectionConfig) {
     this.config = config;
-    this.userId = userId;
+    this.session = session;
   }
 
   boot = () => {
@@ -64,13 +69,22 @@ export default class UserConnection {
       case this.subscriptionUpdateChannel():
         this.updateSubscription(message);
         break;
+      case this.userSessionChannel():
+        this.sessionCheck(message);
       default:
         this.config.ws.send(message);
     }
   }
 
-  markReadChannel = () => {
-    return `notification_read:${this.userId}`;
+  sessionCheck = (messageString: string) => {
+    const message = JSON.parse(messageString);
+    if (message.event === 'logout') {
+      for (const key of message.data.keys) {
+        if (key === this.session.key) {
+          this.config.ws.close();
+        }
+      }
+    }
   }
 
   subscribe = async () => {
@@ -79,7 +93,7 @@ export default class UserConnection {
   }
 
   subscriptionUpdateChannel = () => {
-    return `user_subscription:${this.userId}`;
+    return `user_subscription:${this.session.userId}`;
   }
 
   subscriptions = async () => {
@@ -90,8 +104,9 @@ export default class UserConnection {
 
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
-    ret.push(this.markReadChannel());
+    ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
+    ret.push(this.userSessionChannel());
 
     return ret;
   }
@@ -103,12 +118,16 @@ export default class UserConnection {
     this.config.redisSubscriber[action](data.channel, this);
   }
 
+  userSessionChannel = () => {
+    return `user_session:${this.session.userId}`;
+  }
+
   private beatmapsetSubscriptions = async () => {
     const [rows, fields] = await this.config.db.execute(`
       SELECT beatmapset_id
       FROM beatmapset_watches
       WHERE user_id = ?
-    `, [this.userId]);
+    `, [this.session.userId]);
 
     return rows.map((row: any) => {
       return `new:beatmapset:${row.beatmapset_id}`;
@@ -120,7 +139,7 @@ export default class UserConnection {
       SELECT topic_id
       FROM phpbb_topics_watch
       WHERE user_id = ?
-    `, [this.userId]);
+    `, [this.session.userId]);
 
     return rows.map((row: any) => {
       return `new:forum_topic:${row.topic_id}`;

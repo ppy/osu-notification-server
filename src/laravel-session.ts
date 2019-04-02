@@ -38,6 +38,7 @@ interface EncryptedSession {
 
 interface Session {
   csrf: string;
+  key: string;
   userId: number;
 }
 
@@ -97,7 +98,10 @@ export default class LaravelSession {
     }
 
     if (hasValidToken) {
-      return session.userId;
+      return {
+        key: session.key,
+        userId: session.userId,
+      };
     }
   }
 
@@ -110,6 +114,7 @@ export default class LaravelSession {
 
     return {
       csrf: rawData._token,
+      key,
       // login_<authName>_<hashedAuthClass>
       userId: rawData.login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d,
     };

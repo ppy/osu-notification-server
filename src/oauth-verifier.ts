@@ -107,7 +107,10 @@ export default class OAuthVerifier {
 
     for (const scope of scopes) {
       if (scope === '*' || scope === 'read') {
-        return userId;
+        return {
+          key: `oauth:${oAuthToken}`,
+          userId,
+        };
       }
     }
   }
