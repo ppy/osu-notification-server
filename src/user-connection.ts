@@ -31,6 +31,8 @@ interface UserSession {
   userId: number;
 }
 
+function ignoreError() { };
+
 export default class UserConnection {
   private config: UserConnectionConfig;
   private pingTimeout?: NodeJS.Timeout;
@@ -58,17 +60,11 @@ export default class UserConnection {
 
   delayedPing = () => {
     this.pingTimeout = setTimeout(() => {
-      if (this.isActive()) {
-        this.config.ws.ping();
-      }
+      this.config.ws.ping(ignoreError);
     }, 10000);
   }
 
   event = (channel: string, message: string) => {
-    if (!this.isActive()) {
-      return;
-    }
-
     switch (channel) {
       case this.subscriptionUpdateChannel():
         this.updateSubscription(message);
@@ -76,19 +72,11 @@ export default class UserConnection {
       case this.userSessionChannel():
         this.sessionCheck(message);
       default:
-        this.config.ws.send(message);
+        this.config.ws.send(message, ignoreError);
     }
-  }
-
-  isActive = () => {
-    return this.config.ws.readyState === WebSocket.OPEN;
   }
 
   sessionCheck = (messageString: string) => {
-    if (!this.isActive()) {
-      return;
-    }
-
     const message = JSON.parse(messageString);
     if (message.event === 'logout') {
       for (const key of message.data.keys) {
