@@ -66,7 +66,9 @@ export default class UserConnection {
     }, 10000);
   }
 
-  event = (channel: string, message: string) => {
+  event = (channel: string, messageString: string) => {
+    const message = JSON.parse(messageString);
+
     switch (channel) {
       case this.subscriptionUpdateChannel():
         this.updateSubscription(message);
@@ -74,12 +76,13 @@ export default class UserConnection {
       case this.userSessionChannel():
         this.sessionCheck(message);
       default:
-        this.config.ws.send(message, ignoreError);
+        if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
+          this.config.ws.send(messageString, ignoreError);
+        }
     }
   }
 
-  sessionCheck = (messageString: string) => {
-    const message = JSON.parse(messageString);
+  sessionCheck = (message: any) => {
     if (message.event === 'logout') {
       for (const key of message.data.keys) {
         if (key === this.session.key) {
@@ -113,8 +116,7 @@ export default class UserConnection {
     return ret;
   }
 
-  updateSubscription = (messageString: string) => {
-    const message = JSON.parse(messageString);
+  updateSubscription = (message: any) => {
     const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
 
     this.config.redisSubscriber[action](message.data.channel, this);
