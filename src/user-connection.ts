@@ -113,11 +113,11 @@ export default class UserConnection {
     return ret;
   }
 
-  updateSubscription = (message: string) => {
-    const data = JSON.parse(message).data;
-    const action = data.action === 'remove' ? 'unsubscribe' : 'subscribe';
+  updateSubscription = (messageString: string) => {
+    const message = JSON.parse(messageString);
+    const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
 
-    this.config.redisSubscriber[action](data.channel, this);
+    this.config.redisSubscriber[action](message.data.channel, this);
   }
 
   userSessionChannel = () => {
