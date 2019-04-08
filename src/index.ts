@@ -23,6 +23,7 @@ import * as path from 'path';
 import 'source-map-support/register';
 import * as WebSocket from 'ws';
 import LaravelSession from './laravel-session';
+import logger from './logger';
 import OAuthVerifier from './oauth-verifier';
 import RedisSubscriber from './redis-subscriber';
 import UserConnection from './user-connection';
@@ -87,6 +88,7 @@ const laravelSession = new LaravelSession({
 // initialise server
 const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_PORT;
 const wss = new WebSocket.Server({port});
+logger(`listening on ${port}`);
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   let userSession;
