@@ -86,7 +86,7 @@ const laravelSession = new LaravelSession({
 });
 
 // initialise server
-const port = process.env.WEBSOCKET_PORT == null ? 3000 : +process.env.WEBSOCKET_PORT;
+const port = process.env.NOTIFICATION_SERVER_LISTEN_PORT == null ? 2345 : +process.env.NOTIFICATION_SERVER_LISTEN_PORT;
 const wss = new WebSocket.Server({port});
 logger(`listening on ${port}`);
 
