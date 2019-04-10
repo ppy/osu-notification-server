@@ -70,8 +70,8 @@ const db = mysql.createPool({
 });
 
 const redisSubscriber = new RedisSubscriber({
-  host: process.env.REDIS_HOST_BROADCAST,
-  port: process.env.REDIS_PORT_BROADCAST == null ? 6379 : +process.env.REDIS_PORT_BROADCAST,
+  host: process.env.NOTIFICATION_REDIS_HOST,
+  port: process.env.NOTIFICATION_REDIS_PORT == null ? 6379 : +process.env.NOTIFICATION_REDIS_PORT,
 });
 
 const oAuthVerifier = new OAuthVerifier({
