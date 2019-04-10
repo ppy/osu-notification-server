@@ -75,6 +75,7 @@ export default class UserConnection {
         break;
       case this.userSessionChannel():
         this.sessionCheck(message);
+        break;
       default:
         if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
           this.config.ws.send(messageString, ignoreError);
@@ -86,7 +87,9 @@ export default class UserConnection {
     if (message.event === 'logout') {
       for (const key of message.data.keys) {
         if (key === this.session.key) {
-          this.config.ws.close();
+          this.config.ws.send(JSON.stringify({ event: 'logout' }), () => {
+            this.config.ws.close();
+          });
         }
       }
     }
