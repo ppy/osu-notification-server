@@ -51,6 +51,7 @@ export default class UserConnection {
   }
 
   close = () => {
+    logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
     this.config.redisSubscriber.unsubscribe(null, this);
 
     if (this.pingTimeout != null) {
@@ -87,7 +88,7 @@ export default class UserConnection {
       for (const key of message.data.keys) {
         if (key === this.session.key) {
           this.config.ws.send(JSON.stringify({ event: 'logout' }), () => {
-            logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
+            logger.debug(`user ${this.session.userId} (${this.session.ip}) logged out`);
             this.config.ws.close();
           });
         }
