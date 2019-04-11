@@ -101,6 +101,13 @@ wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
     return;
   }
 
+  let ip = req.connection.remoteAddress;
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor !== '') {
+    ip = forwardedFor.split(/\s*,\s*/)[0];
+  }
+  logger(`user ${userSession.userId} connected from ${ip}`);
+
   const connection = new UserConnection(userSession, {db, redisSubscriber, ws});
 
   connection.boot();
