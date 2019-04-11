@@ -16,7 +16,7 @@ Configurations:
   - `WEBSOCKET_BASEDIR`: set if you need to explicitly specify path to the files above.
   - `APP_ENV`: defaults to `development`. The `.env.${APP_ENV}` file will be loaded first before `.env`.
 - Either environment variable or in `.env` files:
-  - `WEBSOCKET_PORT`: defaults to 3000.
+  - Refer to `src/config.ts`.
 
 Lastly, osu!web needs to be configured to use redis-based session.
 
