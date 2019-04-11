@@ -20,13 +20,21 @@ function log(level: string, ...args: any) {
   return console.log(`[${(new Date()).toJSON()}][${level}]`, ...args);
 }
 
-const logger = {
-  debug: (...args: any) => {
+let debug;
+if (process.env.APP_DEBUG === 'true') {
+  debug = (...args: any) => {
     return log('debug', ...args);
-  },
-  info: (...args: any) => {
-    return log('info', ...args);
-  },
+  };
+} else {
+  debug = () => {
+    // do nothing
+  };
+}
+
+const info = (...args: any) => {
+  return log('info', ...args);
 };
+
+const logger = {debug, info};
 
 export default logger;
