@@ -16,12 +16,11 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as dotenv from 'dotenv';
 import * as http from 'http';
 import * as mysql from 'mysql2/promise';
-import * as path from 'path';
 import 'source-map-support/register';
 import * as WebSocket from 'ws';
+import config from './config';
 import LaravelSession from './laravel-session';
 import logger from './logger';
 import OAuthVerifier from './oauth-verifier';
@@ -57,56 +56,15 @@ const getUserSession = async (req: http.IncomingMessage) => {
   return userSession;
 };
 
-// env loading
-let baseDir = process.env.WEBSOCKET_BASEDIR;
-
-if (baseDir == null) {
-  baseDir = path.resolve(`${__dirname}/..`);
-}
-
-const env = process.env.APP_ENV || 'development';
-dotenv.config({path: `${baseDir}/.env.${env}`});
-dotenv.config({path: `${baseDir}/.env`});
-
-if (typeof process.env.APP_KEY !== 'string') {
-  throw new Error('APP_KEY environment variable is not set.');
-}
-
 // variables
-const db = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT == null ? undefined : +process.env.DB_PORT,
-
-  password: process.env.DB_PASSWORD,
-  user: process.env.DB_USERNAME || 'osuweb',
-
-  database: process.env.DB_DATABASE || 'osu',
-});
-
-const redisSubscriber = new RedisSubscriber({
-  host: process.env.NOTIFICATION_REDIS_HOST,
-  port: process.env.NOTIFICATION_REDIS_PORT == null ? 6379 : +process.env.NOTIFICATION_REDIS_PORT,
-});
-
-const oAuthVerifier = new OAuthVerifier({
-  baseDir,
-  db,
-});
-
-const laravelSession = new LaravelSession({
-  appKey: process.env.APP_KEY,
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT == null ? 6379 : +process.env.REDIS_PORT,
-});
+const db = mysql.createPool(config.db);
+const redisSubscriber = new RedisSubscriber(config.redis.notification);
+const oAuthVerifier = new OAuthVerifier({ baseDir: config.baseDir, db });
+const laravelSession = new LaravelSession({ appKey: config.appKey, ...config.redis.app });
 
 // initialise server
-let host = process.env.NOTIFICATION_SERVER_LISTEN_HOST;
-if (host == null || host === '') {
-  host = '127.0.0.1';
-}
-const port = process.env.NOTIFICATION_SERVER_LISTEN_PORT == null ? 2345 : +process.env.NOTIFICATION_SERVER_LISTEN_PORT;
-const wss = new WebSocket.Server({host, port});
-logger.info(`listening on ${host}:${port}`);
+const wss = new WebSocket.Server(config.server);
+logger.info(`listening on ${config.server.host}:${config.server.port}`);
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   let userSession;

@@ -16,12 +16,14 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import config from './config';
+
 function log(level: string, ...args: any) {
   return console.log(`[${(new Date()).toJSON()}][${level}]`, ...args);
 }
 
 let debug;
-if (process.env.APP_DEBUG === 'true') {
+if (config.debug) {
   debug = (...args: any) => {
     return log('debug', ...args);
   };
