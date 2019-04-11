@@ -17,6 +17,7 @@
  */
 
 import * as redis from 'redis';
+import logger from './logger';
 import UserConnection from './user-connection';
 
 interface Config {
@@ -35,6 +36,8 @@ export default class RedisSubscriber {
   constructor(config: Config) {
     this.redis = redis.createClient(config);
     this.redis.on('message', (channel: string, message: string) => {
+      logger.debug(`received message from channel ${channel}`);
+
       if (this.userConnections[channel] == null) {
         return;
       }

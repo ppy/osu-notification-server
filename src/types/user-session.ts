@@ -16,17 +16,8 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function log(level: string, ...args: any) {
-  return console.log(`[${(new Date()).toJSON()}][${level}]`, ...args);
+export default interface UserSession {
+  ip?: string;
+  key: string;
+  userId: number;
 }
-
-const logger = {
-  debug: (...args: any) => {
-    return log('debug', ...args);
-  },
-  info: (...args: any) => {
-    return log('info', ...args);
-  },
-};
-
-export default logger;

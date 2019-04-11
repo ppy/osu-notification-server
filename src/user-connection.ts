@@ -18,17 +18,14 @@
 
 import * as mysql from 'mysql2/promise';
 import * as WebSocket from 'ws';
+import logger from './logger';
 import RedisSubscriber from './redis-subscriber';
+import UserSession from './types/user-session';
 
 interface UserConnectionConfig {
   db: mysql.Pool;
   redisSubscriber: RedisSubscriber;
   ws: WebSocket;
-}
-
-interface UserSession {
-  key: string;
-  userId: number;
 }
 
 function ignoreError() {
@@ -50,6 +47,7 @@ export default class UserConnection {
     this.config.ws.on('close', this.close);
     this.config.ws.on('pong', this.delayedPing);
     this.delayedPing();
+    logger.debug(`user ${this.session.userId} (${this.session.ip}) connected`);
   }
 
   close = () => {
@@ -77,6 +75,7 @@ export default class UserConnection {
         this.sessionCheck(message);
         break;
       default:
+        logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
           this.config.ws.send(messageString, ignoreError);
         }
@@ -88,6 +87,7 @@ export default class UserConnection {
       for (const key of message.data.keys) {
         if (key === this.session.key) {
           this.config.ws.send(JSON.stringify({ event: 'logout' }), () => {
+            logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
             this.config.ws.close();
           });
         }
@@ -122,6 +122,7 @@ export default class UserConnection {
   updateSubscription = (message: any) => {
     const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
 
+    logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
     this.config.redisSubscriber[action](message.data.channel, this);
   }
 

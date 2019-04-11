@@ -26,11 +26,23 @@ import LaravelSession from './laravel-session';
 import logger from './logger';
 import OAuthVerifier from './oauth-verifier';
 import RedisSubscriber from './redis-subscriber';
+import UserSession from './types/user-session';
 import UserConnection from './user-connection';
 
 // helper functions
+const getIp = (req: http.IncomingMessage) => {
+  let ret = req.connection.remoteAddress;
+
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor !== '') {
+    ret = forwardedFor.split(/\s*,\s*/)[0];
+  }
+
+  return ret;
+};
+
 const getUserSession = async (req: http.IncomingMessage) => {
-  let userSession = await oAuthVerifier.verifyRequest(req);
+  let userSession: UserSession | undefined = await oAuthVerifier.verifyRequest(req);
 
   if (userSession == null) {
     userSession = await laravelSession.verifyRequest(req);
@@ -39,6 +51,8 @@ const getUserSession = async (req: http.IncomingMessage) => {
   if (userSession == null) {
     throw new Error('Authentication failed');
   }
+
+  userSession.ip = getIp(req);
 
   return userSession;
 };
@@ -88,7 +102,7 @@ const laravelSession = new LaravelSession({
 // initialise server
 const port = process.env.NOTIFICATION_SERVER_LISTEN_PORT == null ? 2345 : +process.env.NOTIFICATION_SERVER_LISTEN_PORT;
 const wss = new WebSocket.Server({port});
-logger(`listening on ${port}`);
+logger.info(`listening on ${port}`);
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   let userSession;
@@ -100,13 +114,6 @@ wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
     ws.close();
     return;
   }
-
-  let ip = req.connection.remoteAddress;
-  const forwardedFor = req.headers['x-forwarded-for'];
-  if (typeof forwardedFor === 'string' && forwardedFor !== '') {
-    ip = forwardedFor.split(/\s*,\s*/)[0];
-  }
-  logger(`user ${userSession.userId} connected from ${ip}`);
 
   const connection = new UserConnection(userSession, {db, redisSubscriber, ws});
 
