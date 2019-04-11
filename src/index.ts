@@ -100,9 +100,13 @@ const laravelSession = new LaravelSession({
 });
 
 // initialise server
+let host = process.env.NOTIFICATION_SERVER_LISTEN_HOST;
+if (host == null || host === '') {
+  host = '127.0.0.1';
+}
 const port = process.env.NOTIFICATION_SERVER_LISTEN_PORT == null ? 2345 : +process.env.NOTIFICATION_SERVER_LISTEN_PORT;
-const wss = new WebSocket.Server({port});
-logger.info(`listening on ${port}`);
+const wss = new WebSocket.Server({host, port});
+logger.info(`listening on ${host}:${port}`);
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   let userSession;
