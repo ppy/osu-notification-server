@@ -42,16 +42,19 @@ const getIp = (req: http.IncomingMessage) => {
 
 const getUserSession = async (req: http.IncomingMessage) => {
   let userSession: UserSession | undefined = await oAuthVerifier.verifyRequest(req);
+  const ip = getIp(req);
 
   if (userSession == null) {
     userSession = await laravelSession.verifyRequest(req);
   }
 
   if (userSession == null) {
+    logger.info(`authentication failed from ${ip}`);
+
     throw new Error('Authentication failed');
   }
 
-  userSession.ip = getIp(req);
+  userSession.ip = ip;
 
   return userSession;
 };
