@@ -125,7 +125,7 @@ export default class LaravelSession {
   }
 
   keyFromSession(session: string = '') {
-    if (session == null || session == '') {
+    if (session == null || session === '') {
       throw new Error('Missing session data');
     }
 
