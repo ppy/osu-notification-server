@@ -41,15 +41,22 @@ const getIp = (req: http.IncomingMessage) => {
 };
 
 const getUserSession = async (req: http.IncomingMessage) => {
-  let userSession: UserSession | undefined = await oAuthVerifier.verifyRequest(req);
   const ip = getIp(req);
+  let failReason = '';
+  let userSession: UserSession | undefined;
 
-  if (userSession == null) {
-    userSession = await laravelSession.verifyRequest(req);
+  try {
+    userSession = await oAuthVerifier.verifyRequest(req);
+
+    if (userSession == null) {
+      userSession = await laravelSession.verifyRequest(req);
+    }
+  } catch (err) {
+    failReason = err.message;
   }
 
   if (userSession == null) {
-    logger.info(`authentication failed from ${ip}`);
+    logger.info(`authentication failed from ${ip}: ${failReason || 'unknown reason'}`);
 
     throw new Error('Authentication failed');
   }
