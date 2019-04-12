@@ -66,6 +66,10 @@ const getUserSession = async (req: http.IncomingMessage) => {
   return userSession;
 };
 
+function ignoreError() {
+  // do nothing
+}
+
 // variables
 const db = mysql.createPool(config.db);
 const redisSubscriber = new RedisSubscriber(config.redis.notification);
@@ -82,7 +86,7 @@ wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   try {
     userSession = await getUserSession(req);
   } catch (err) {
-    ws.send('authentication failed');
+    ws.send(JSON.stringify({ error: 'authentication failed' }), ignoreError);
     ws.close();
     return;
   }
