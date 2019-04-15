@@ -148,6 +148,7 @@ export default class UserConnection {
       SELECT topic_id
       FROM phpbb_topics_watch
       WHERE user_id = ?
+        AND mail = true
     `, [this.session.userId]);
 
     return rows.map((row: any) => {
