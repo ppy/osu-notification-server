@@ -87,7 +87,7 @@ wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
     userSession = await getUserSession(req);
   } catch (err) {
     ws.send(JSON.stringify({ error: 'authentication failed' }), ignoreError);
-    ws.close();
+    ws.terminate();
     return;
   }
 
