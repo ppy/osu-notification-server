@@ -56,7 +56,7 @@ const getUserSession = async (req: http.IncomingMessage) => {
   }
 
   if (userSession == null) {
-    logger.info(`authentication failed from ${ip}: ${failReason || 'missing authentication'}`);
+    logger.info(`authentication failed from ${ip}: ${failReason || 'missing authentication header/cookie'}`);
 
     throw new Error('Authentication failed');
   }
