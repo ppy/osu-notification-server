@@ -87,7 +87,7 @@ export default class OAuthVerifier {
     const oAuthToken = this.getToken(req);
 
     if (oAuthToken == null) {
-      return;
+      return null;
     }
 
     const [rows, fields] = await this.config.db.execute(`
@@ -99,7 +99,7 @@ export default class OAuthVerifier {
     ]);
 
     if (rows.length === 0) {
-      throw new Error('authentication failed');
+      throw new Error('token doesn\'t exist');
     }
 
     const userId = rows[0].user_id;
@@ -113,5 +113,7 @@ export default class OAuthVerifier {
         };
       }
     }
+
+    throw new Error('token doesn\'t have the required scope');
   }
 }
