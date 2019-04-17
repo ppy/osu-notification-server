@@ -74,20 +74,20 @@ export default class LaravelSession {
 
   async verifyRequest(req: http.IncomingMessage) {
     if (req.url == null) {
-      return;
+      return null;
     }
 
     const session = await this.getSessionDataFromRequest(req);
 
-    if (session.userId == null) {
-      return;
+    if (session == null || session.userId == null) {
+      return null;
     }
 
     let csrf;
     const params = url.parse(req.url, true).query;
 
-    if (typeof params.csrf !== 'string') {
-      return;
+    if (typeof params.csrf !== 'string' || params.csrf === '') {
+      throw new Error('missing csrf token');
     }
 
     csrf = Buffer.from(params.csrf);
@@ -97,8 +97,7 @@ export default class LaravelSession {
     try {
       hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
     } catch (err) {
-      // failed comparison check
-      return;
+      throw new Error(`failed checking csrf token: ${err.message}`);
     }
 
     if (hasValidToken) {
@@ -106,11 +105,17 @@ export default class LaravelSession {
         key: session.key,
         userId: session.userId,
       };
+    } else {
+      throw new Error('invalid csrf token');
     }
   }
 
-  async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session> {
-    const key = `osu-next:${this.keyFromSession(getCookie(req, 'osu_session'))}`;
+  async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session | null> {
+    const key = this.keyFromSession(getCookie(req, 'osu_session'));
+
+    if (key == null) {
+      return null;
+    }
 
     const serializedData = await this.redisGet(key);
 
@@ -126,7 +131,7 @@ export default class LaravelSession {
 
   keyFromSession(session: string = '') {
     if (session == null || session === '') {
-      throw new Error('Missing session data');
+      return;
     }
 
     let encryptedSession;
@@ -144,7 +149,7 @@ export default class LaravelSession {
 
     this.verifyHmac(encryptedSession);
 
-    return this.decrypt(encryptedSession);
+    return `osu-next:${this.decrypt(encryptedSession)}`;
   }
 
   private decrypt(encryptedSession: EncryptedSession) {

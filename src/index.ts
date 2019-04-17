@@ -43,7 +43,7 @@ const getIp = (req: http.IncomingMessage) => {
 const getUserSession = async (req: http.IncomingMessage) => {
   const ip = getIp(req);
   let failReason = '';
-  let userSession: UserSession | undefined;
+  let userSession: UserSession | null = null;
 
   try {
     userSession = await oAuthVerifier.verifyRequest(req);
@@ -56,7 +56,7 @@ const getUserSession = async (req: http.IncomingMessage) => {
   }
 
   if (userSession == null) {
-    logger.info(`authentication failed from ${ip}: ${failReason || 'unknown reason'}`);
+    logger.info(`authentication failed from ${ip}: ${failReason || 'missing authentication header/cookie'}`);
 
     throw new Error('Authentication failed');
   }
