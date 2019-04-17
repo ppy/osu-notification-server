@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "lint": "tslint --fix -c tslint.json 'src/**/*.ts'",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "serve": "node build/index.js",
     "watch": "yarn run build --watch"
   },

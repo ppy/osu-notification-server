@@ -32,7 +32,7 @@ Watch and rebuild automatically with `yarn watch`. The server doesn't auto-resta
 
 ### Code linting (style check)
 
-Run `yarn lint` and additionally do manual fixes if needed.
+Run `yarn lint --fix` and additionally do manual fixes if needed.
 
 ### Testing
 
