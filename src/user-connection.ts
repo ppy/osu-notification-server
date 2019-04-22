@@ -33,9 +33,14 @@ function ignoreError() {
 }
 
 export default class UserConnection {
+  private active: boolean = false;
   private config: UserConnectionConfig;
   private pingTimeout?: NodeJS.Timeout;
   private session: UserSession;
+
+  get isActive() {
+    return this.active;
+  }
 
   constructor(session: UserSession, config: UserConnectionConfig) {
     this.config = config;
@@ -43,6 +48,7 @@ export default class UserConnection {
   }
 
   boot = () => {
+    this.active = true;
     this.subscribe();
     this.config.ws.on('close', this.close);
     this.config.ws.on('pong', this.delayedPing);
@@ -52,6 +58,8 @@ export default class UserConnection {
 
   close = () => {
     logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
+
+    this.active = false;
     this.config.redisSubscriber.unsubscribe(null, this);
 
     if (this.pingTimeout != null) {
@@ -98,6 +106,7 @@ export default class UserConnection {
 
   subscribe = async () => {
     const subscriptions = await this.subscriptions();
+
     this.config.redisSubscriber.subscribe(subscriptions, this);
   }
 

@@ -49,6 +49,10 @@ export default class RedisSubscriber {
   }
 
   subscribe(channels: string | string[], connection: UserConnection) {
+    if (!connection.isActive) {
+      return;
+    }
+
     if (!Array.isArray(channels)) {
       channels = [channels];
     }
