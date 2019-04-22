@@ -87,6 +87,10 @@ export default class UserConnection {
     }
   }
 
+  isActive = () => {
+    return this.active;
+  }
+
   sessionCheck = (message: any) => {
     if (message.event === 'logout') {
       for (const key of message.data.keys) {
@@ -102,11 +106,6 @@ export default class UserConnection {
 
   subscribe = async () => {
     const subscriptions = await this.subscriptions();
-
-    // may be closed during await above
-    if (!this.active) {
-      return;
-    }
 
     this.config.redisSubscriber.subscribe(subscriptions, this);
   }
