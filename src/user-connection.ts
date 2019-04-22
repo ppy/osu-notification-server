@@ -38,6 +38,10 @@ export default class UserConnection {
   private pingTimeout?: NodeJS.Timeout;
   private session: UserSession;
 
+  get isActive() {
+    return this.active;
+  }
+
   constructor(session: UserSession, config: UserConnectionConfig) {
     this.config = config;
     this.session = session;
@@ -85,10 +89,6 @@ export default class UserConnection {
           this.config.ws.send(messageString, ignoreError);
         }
     }
-  }
-
-  isActive = () => {
-    return this.active;
   }
 
   sessionCheck = (message: any) => {

@@ -49,7 +49,7 @@ export default class RedisSubscriber {
   }
 
   subscribe(channels: string | string[], connection: UserConnection) {
-    if (!connection.isActive()) {
+    if (!connection.isActive) {
       return;
     }
 
