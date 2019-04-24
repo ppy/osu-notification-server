@@ -25,8 +25,8 @@ interface UserConnections {
 }
 
 export default class RedisSubscriber {
-  private userConnections: UserConnections;
   private redis: redis.RedisClient;
+  private userConnections: UserConnections;
 
   constructor(config: redis.ClientOpts) {
     this.redis = redis.createClient(config);

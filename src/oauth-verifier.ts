@@ -29,11 +29,11 @@ interface Params {
 
 interface OAuthJWT {
   aud: string;
-  jti: string;
   iat: number;
+  jti: string;
   nbf: number;
-  sub: string;
   scopes: string[];
+  sub: string;
 }
 
 const isOAuthJWT = (arg: object|string): arg is OAuthJWT => {

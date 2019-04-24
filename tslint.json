@@ -8,6 +8,13 @@
       "indent": [true, "spaces", 2],
       "interface-name": false,
       "member-access": [true, "no-public"],
+      "member-ordering": [
+        true,
+        {
+          "order": "statics-first",
+          "alphabetize": true
+        }
+      ],
       "no-console": false,
       "quotemark": [true, "single"]
     },

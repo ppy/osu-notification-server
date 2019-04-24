@@ -17,8 +17,8 @@
  */
 
 interface Options {
-  strict: boolean;
   encoding?: 'utf8' | 'binary';
+  strict: boolean;
 }
 
 declare module 'php-serialize' {

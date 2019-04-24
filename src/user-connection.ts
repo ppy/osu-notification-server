@@ -34,16 +34,16 @@ function ignoreError() {
 }
 
 export default class UserConnection {
+  get isActive() {
+    return this.active;
+  }
+
   private active: boolean = false;
   private db: mysql.Pool;
   private pingTimeout?: NodeJS.Timeout;
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
-
-  get isActive() {
-    return this.active;
-  }
 
   constructor(params: Params) {
     this.db = params.db;
@@ -115,10 +115,6 @@ export default class UserConnection {
     this.redisSubscriber.subscribe(subscriptions, this);
   }
 
-  subscriptionUpdateChannel = () => {
-    return `user_subscription:${this.session.userId}`;
-  }
-
   subscriptions = async () => {
     const ret = [];
 
@@ -132,6 +128,10 @@ export default class UserConnection {
     ret.push(this.userSessionChannel());
 
     return ret;
+  }
+
+  subscriptionUpdateChannel = () => {
+    return `user_subscription:${this.session.userId}`;
   }
 
   updateSubscription = (message: any) => {
