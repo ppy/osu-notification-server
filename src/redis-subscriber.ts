@@ -41,16 +41,24 @@ export default class RedisSubscriber {
     this.redis.on('message', this.onMessage);
   }
 
-  onMessage = (channel: string, message: string) => {
+  onMessage = (channel: string, messageString: string) => {
     logger.debug(`received message from channel ${channel}`);
 
     const connections = this.userConnections[channel];
 
-    if (connections == null) {
+    if (connections == null || connections.size === 0) {
       return;
     }
 
-    connections.forEach((connection) => connection.event(channel, message));
+    let message: any;
+
+    try {
+      message = JSON.parse(messageString);
+    } catch {
+      // do nothing
+    }
+
+    connections.forEach((connection) => connection.event(channel, messageString, message));
     this.dogstatsd.increment('sent', connections.size);
   }
 
