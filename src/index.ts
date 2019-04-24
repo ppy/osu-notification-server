@@ -74,7 +74,7 @@ function ignoreError() {
 const db = mysql.createPool(config.db);
 const redisSubscriber = new RedisSubscriber(config.redis.notification);
 const oAuthVerifier = new OAuthVerifier({ baseDir: config.baseDir, db });
-const laravelSession = new LaravelSession({ appKey: config.appKey, redis: config.redis.app });
+const laravelSession = new LaravelSession({ appKey: config.appKey, redisConfig: config.redis.app });
 
 // initialise server
 const wss = new WebSocket.Server(config.server);

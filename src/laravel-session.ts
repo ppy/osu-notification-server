@@ -26,7 +26,7 @@ import {promisify} from 'util';
 
 interface Params {
   appKey: string;
-  redis: redis.ClientOpts;
+  redisConfig: redis.ClientOpts;
 }
 
 interface EncryptedSession {
@@ -63,7 +63,7 @@ export default class LaravelSession {
   private redisGet: any;
 
   constructor(params: Params) {
-    this.redis = redis.createClient(params.redis);
+    this.redis = redis.createClient(params.redisConfig);
     this.redisGet = promisify(this.redis.get).bind(this.redis);
     this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
   }
