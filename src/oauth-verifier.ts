@@ -22,7 +22,7 @@ import * as jwt from 'jsonwebtoken';
 import * as mysql from 'mysql2/promise';
 import * as url from 'url';
 
-interface Config {
+interface Params {
   baseDir: string;
   db: mysql.Pool;
 }
@@ -41,12 +41,12 @@ const isOAuthJWT = (arg: object|string): arg is OAuthJWT => {
 };
 
 export default class OAuthVerifier {
-  config: Config;
+  db: mysql.Pool;
   oAuthTokenSignatureKey: Buffer;
 
-  constructor(config: Config) {
-    this.config = config;
-    this.oAuthTokenSignatureKey = fs.readFileSync(`${this.config.baseDir}/oauth-public.key`);
+  constructor(params: Params) {
+    this.db = params.db;
+    this.oAuthTokenSignatureKey = fs.readFileSync(`${params.baseDir}/oauth-public.key`);
   }
 
   getToken = (req: http.IncomingMessage) => {
@@ -90,7 +90,7 @@ export default class OAuthVerifier {
       return null;
     }
 
-    const [rows, fields] = await this.config.db.execute(`
+    const [rows, fields] = await this.db.execute(`
       SELECT user_id, scopes
       FROM oauth_access_tokens
       WHERE revoked = false AND expires_at > now() AND id = ?

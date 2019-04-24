@@ -17,7 +17,10 @@
  */
 
 import * as dotenv from 'dotenv';
+import { PoolOptions as DbConfig } from 'mysql2';
 import * as path from 'path';
+import { ClientOpts as RedisConfig } from 'redis';
+import { ClientOptions as ServerConfig } from 'ws';
 
 interface Config {
   appKey: string;
@@ -29,27 +32,9 @@ interface Config {
   server: ServerConfig;
 }
 
-interface DbConfig {
-  database: string;
-  host: string;
-  password?: string;
-  port?: number;
-  user: string;
-}
-
-interface RedisConfig {
-  host?: string;
-  port: number;
-}
-
 interface RedisConfigs {
   app: RedisConfig;
   notification: RedisConfig;
-}
-
-interface ServerConfig {
-  host: string;
-  port: number;
 }
 
 let baseDir = process.env.WEBSOCKET_BASEDIR;

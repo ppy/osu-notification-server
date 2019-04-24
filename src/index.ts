@@ -74,24 +74,24 @@ function ignoreError() {
 const db = mysql.createPool(config.db);
 const redisSubscriber = new RedisSubscriber(config.redis.notification);
 const oAuthVerifier = new OAuthVerifier({ baseDir: config.baseDir, db });
-const laravelSession = new LaravelSession({ appKey: config.appKey, ...config.redis.app });
+const laravelSession = new LaravelSession({ appKey: config.appKey, redis: config.redis.app });
 
 // initialise server
 const wss = new WebSocket.Server(config.server);
 logger.info(`listening on ${config.server.host}:${config.server.port}`);
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
-  let userSession;
+  let session;
 
   try {
-    userSession = await getUserSession(req);
+    session = await getUserSession(req);
   } catch (err) {
     ws.send(JSON.stringify({ error: 'authentication failed' }), ignoreError);
     ws.terminate();
     return;
   }
 
-  const connection = new UserConnection(userSession, {db, redisSubscriber, ws});
+  const connection = new UserConnection({ db, redisSubscriber, session, ws });
 
   connection.boot();
 });

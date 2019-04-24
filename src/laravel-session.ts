@@ -24,10 +24,9 @@ import * as redis from 'redis';
 import * as url from 'url';
 import {promisify} from 'util';
 
-interface Config {
+interface Params {
   appKey: string;
-  host?: string;
-  port?: number;
+  redis: redis.ClientOpts;
 }
 
 interface EncryptedSession {
@@ -63,13 +62,10 @@ export default class LaravelSession {
   private key: Buffer;
   private redisGet: any;
 
-  constructor(config: Config) {
-    this.redis = redis.createClient({
-      host: config.host,
-      port: config.port,
-    });
+  constructor(params: Params) {
+    this.redis = redis.createClient(params.redis);
     this.redisGet = promisify(this.redis.get).bind(this.redis);
-    this.key = Buffer.from(config.appKey.slice('base64:'.length), 'base64');
+    this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
   }
 
   async verifyRequest(req: http.IncomingMessage) {
