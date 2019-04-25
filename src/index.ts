@@ -72,6 +72,7 @@ function ignoreError() {
 }
 
 // variables
+const authenticationFailedMessage = JSON.stringify({ error: 'authentication failed' });
 const db = mysql.createPool(config.db);
 const dogstatsd = new StatsD({ prefix: 'osu.notification.' });
 const redisSubscriber = new RedisSubscriber({ dogstatsd, redisConfig: config.redis.notification });
@@ -88,7 +89,7 @@ wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   try {
     session = await getUserSession(req);
   } catch (err) {
-    ws.send(JSON.stringify({ error: 'authentication failed' }), ignoreError);
+    ws.send(authenticationFailedMessage, ignoreError);
     ws.terminate();
     return;
   }
