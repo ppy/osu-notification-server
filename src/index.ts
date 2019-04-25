@@ -16,6 +16,7 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { StatsD } from 'hot-shots';
 import * as http from 'http';
 import * as mysql from 'mysql2/promise';
 import 'source-map-support/register';
@@ -72,7 +73,8 @@ function ignoreError() {
 
 // variables
 const db = mysql.createPool(config.db);
-const redisSubscriber = new RedisSubscriber(config.redis.notification);
+const dogstatsd = new StatsD({ prefix: 'osu.notification.' });
+const redisSubscriber = new RedisSubscriber({ dogstatsd, redisConfig: config.redis.notification });
 const oAuthVerifier = new OAuthVerifier({ baseDir: config.baseDir, db });
 const laravelSession = new LaravelSession({ appKey: config.appKey, redisConfig: config.redis.app });
 

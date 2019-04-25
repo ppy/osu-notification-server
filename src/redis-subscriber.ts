@@ -16,31 +16,42 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { StatsD } from 'hot-shots';
 import * as redis from 'redis';
 import logger from './logger';
 import UserConnection from './user-connection';
+
+interface Params {
+  dogstatsd: StatsD;
+  redisConfig: redis.ClientOpts;
+}
 
 interface UserConnections {
   [key: string]: Set<UserConnection>;
 }
 
 export default class RedisSubscriber {
+  private dogstatsd: StatsD;
   private redis: redis.RedisClient;
-  private userConnections: UserConnections;
+  private userConnections: UserConnections = {};
 
-  constructor(config: redis.ClientOpts) {
-    this.redis = redis.createClient(config);
-    this.redis.on('message', (channel: string, message: string) => {
-      logger.debug(`received message from channel ${channel}`);
+  constructor(params: Params) {
+    this.dogstatsd = params.dogstatsd;
+    this.redis = redis.createClient(params.redisConfig);
+    this.redis.on('message', this.onMessage);
+  }
 
-      if (this.userConnections[channel] == null) {
-        return;
-      }
+  onMessage = (channel: string, message: string) => {
+    logger.debug(`received message from channel ${channel}`);
 
-      this.userConnections[channel].forEach((connection) => connection.event(channel, message));
-    });
+    const connections = this.userConnections[channel];
 
-    this.userConnections = {};
+    if (connections == null) {
+      return;
+    }
+
+    connections.forEach((connection) => connection.event(channel, message));
+    this.dogstatsd.increment('sent', connections.size);
   }
 
   subscribe(channels: string | string[], connection: UserConnection) {
