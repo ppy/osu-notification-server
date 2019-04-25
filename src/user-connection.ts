@@ -79,9 +79,7 @@ export default class UserConnection {
     }
   }
 
-  event = (channel: string, messageString: string) => {
-    const message = JSON.parse(messageString);
-
+  event = (channel: string, messageString: string, message: any) => {
     switch (channel) {
       case this.subscriptionUpdateChannel():
         this.updateSubscription(message);
