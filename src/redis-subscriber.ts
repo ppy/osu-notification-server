@@ -20,20 +20,15 @@ import * as redis from 'redis';
 import logger from './logger';
 import UserConnection from './user-connection';
 
-interface Config {
-  host?: string;
-  port?: number;
-}
-
 interface UserConnections {
   [key: string]: Set<UserConnection>;
 }
 
 export default class RedisSubscriber {
-  private userConnections: UserConnections;
   private redis: redis.RedisClient;
+  private userConnections: UserConnections;
 
-  constructor(config: Config) {
+  constructor(config: redis.ClientOpts) {
     this.redis = redis.createClient(config);
     this.redis.on('message', (channel: string, message: string) => {
       logger.debug(`received message from channel ${channel}`);

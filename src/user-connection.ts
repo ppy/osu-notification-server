@@ -22,9 +22,10 @@ import logger from './logger';
 import RedisSubscriber from './redis-subscriber';
 import UserSession from './types/user-session';
 
-interface UserConnectionConfig {
+interface Params {
   db: mysql.Pool;
   redisSubscriber: RedisSubscriber;
+  session: UserSession;
   ws: WebSocket;
 }
 
@@ -33,25 +34,29 @@ function ignoreError() {
 }
 
 export default class UserConnection {
-  private active: boolean = false;
-  private config: UserConnectionConfig;
-  private pingTimeout?: NodeJS.Timeout;
-  private session: UserSession;
-
   get isActive() {
     return this.active;
   }
 
-  constructor(session: UserSession, config: UserConnectionConfig) {
-    this.config = config;
-    this.session = session;
+  private active: boolean = false;
+  private db: mysql.Pool;
+  private pingTimeout?: NodeJS.Timeout;
+  private redisSubscriber: RedisSubscriber;
+  private session: UserSession;
+  private ws: WebSocket;
+
+  constructor(params: Params) {
+    this.db = params.db;
+    this.redisSubscriber = params.redisSubscriber;
+    this.session = params.session;
+    this.ws = params.ws;
   }
 
   boot = () => {
     this.active = true;
     this.subscribe();
-    this.config.ws.on('close', this.close);
-    this.config.ws.on('pong', this.delayedPing);
+    this.ws.on('close', this.close);
+    this.ws.on('pong', this.delayedPing);
     this.delayedPing();
     logger.debug(`user ${this.session.userId} (${this.session.ip}) connected`);
   }
@@ -60,7 +65,7 @@ export default class UserConnection {
     logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
 
     this.active = false;
-    this.config.redisSubscriber.unsubscribe(null, this);
+    this.redisSubscriber.unsubscribe(null, this);
 
     if (this.pingTimeout != null) {
       clearTimeout(this.pingTimeout);
@@ -69,7 +74,7 @@ export default class UserConnection {
 
   delayedPing = () => {
     this.pingTimeout = setTimeout(() => {
-      this.config.ws.ping(ignoreError);
+      this.ws.ping(ignoreError);
     }, 10000);
   }
 
@@ -86,7 +91,7 @@ export default class UserConnection {
       default:
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
-          this.config.ws.send(messageString, ignoreError);
+          this.ws.send(messageString, ignoreError);
         }
     }
   }
@@ -95,9 +100,9 @@ export default class UserConnection {
     if (message.event === 'logout') {
       for (const key of message.data.keys) {
         if (key === this.session.key) {
-          this.config.ws.send(JSON.stringify({ event: 'logout' }), () => {
+          this.ws.send(JSON.stringify({ event: 'logout' }), () => {
             logger.debug(`user ${this.session.userId} (${this.session.ip}) logged out`);
-            this.config.ws.close();
+            this.ws.close();
           });
         }
       }
@@ -107,11 +112,7 @@ export default class UserConnection {
   subscribe = async () => {
     const subscriptions = await this.subscriptions();
 
-    this.config.redisSubscriber.subscribe(subscriptions, this);
-  }
-
-  subscriptionUpdateChannel = () => {
-    return `user_subscription:${this.session.userId}`;
+    this.redisSubscriber.subscribe(subscriptions, this);
   }
 
   subscriptions = async () => {
@@ -129,11 +130,15 @@ export default class UserConnection {
     return ret;
   }
 
+  subscriptionUpdateChannel = () => {
+    return `user_subscription:${this.session.userId}`;
+  }
+
   updateSubscription = (message: any) => {
     const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
 
     logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
-    this.config.redisSubscriber[action](message.data.channel, this);
+    this.redisSubscriber[action](message.data.channel, this);
   }
 
   userSessionChannel = () => {
@@ -141,7 +146,7 @@ export default class UserConnection {
   }
 
   private beatmapsetSubscriptions = async () => {
-    const [rows, fields] = await this.config.db.execute(`
+    const [rows, fields] = await this.db.execute(`
       SELECT beatmapset_id
       FROM beatmapset_watches
       WHERE user_id = ?
@@ -153,7 +158,7 @@ export default class UserConnection {
   }
 
   private forumTopicSubscriptions = async () => {
-    const [rows, fields] = await this.config.db.execute(`
+    const [rows, fields] = await this.db.execute(`
       SELECT topic_id
       FROM phpbb_topics_watch
       WHERE user_id = ?

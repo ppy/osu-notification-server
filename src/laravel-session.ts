@@ -24,10 +24,9 @@ import * as redis from 'redis';
 import * as url from 'url';
 import {promisify} from 'util';
 
-interface Config {
+interface Params {
   appKey: string;
-  host?: string;
-  port?: number;
+  redisConfig: redis.ClientOpts;
 }
 
 interface EncryptedSession {
@@ -59,55 +58,14 @@ const getCookie = (req: http.IncomingMessage, key: string) => {
 };
 
 export default class LaravelSession {
-  private redis: redis.RedisClient;
   private key: Buffer;
+  private redis: redis.RedisClient;
   private redisGet: any;
 
-  constructor(config: Config) {
-    this.redis = redis.createClient({
-      host: config.host,
-      port: config.port,
-    });
+  constructor(params: Params) {
+    this.redis = redis.createClient(params.redisConfig);
     this.redisGet = promisify(this.redis.get).bind(this.redis);
-    this.key = Buffer.from(config.appKey.slice('base64:'.length), 'base64');
-  }
-
-  async verifyRequest(req: http.IncomingMessage) {
-    if (req.url == null) {
-      return null;
-    }
-
-    const session = await this.getSessionDataFromRequest(req);
-
-    if (session == null || session.userId == null) {
-      return null;
-    }
-
-    let csrf;
-    const params = url.parse(req.url, true).query;
-
-    if (typeof params.csrf !== 'string' || params.csrf === '') {
-      throw new Error('missing csrf token');
-    }
-
-    csrf = Buffer.from(params.csrf);
-
-    let hasValidToken;
-
-    try {
-      hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
-    } catch (err) {
-      throw new Error(`failed checking csrf token: ${err.message}`);
-    }
-
-    if (hasValidToken) {
-      return {
-        key: session.key,
-        userId: session.userId,
-      };
-    } else {
-      throw new Error('invalid csrf token');
-    }
+    this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
   }
 
   async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session | null> {
@@ -150,6 +108,44 @@ export default class LaravelSession {
     this.verifyHmac(encryptedSession);
 
     return `osu-next:${this.decrypt(encryptedSession)}`;
+  }
+
+  async verifyRequest(req: http.IncomingMessage) {
+    if (req.url == null) {
+      return null;
+    }
+
+    const session = await this.getSessionDataFromRequest(req);
+
+    if (session == null || session.userId == null) {
+      return null;
+    }
+
+    let csrf;
+    const params = url.parse(req.url, true).query;
+
+    if (typeof params.csrf !== 'string' || params.csrf === '') {
+      throw new Error('missing csrf token');
+    }
+
+    csrf = Buffer.from(params.csrf);
+
+    let hasValidToken;
+
+    try {
+      hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
+    } catch (err) {
+      throw new Error(`failed checking csrf token: ${err.message}`);
+    }
+
+    if (hasValidToken) {
+      return {
+        key: session.key,
+        userId: session.userId,
+      };
+    } else {
+      throw new Error('invalid csrf token');
+    }
   }
 
   private decrypt(encryptedSession: EncryptedSession) {
