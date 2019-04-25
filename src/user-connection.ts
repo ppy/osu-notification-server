@@ -40,7 +40,8 @@ export default class UserConnection {
 
   private active: boolean = false;
   private db: mysql.Pool;
-  private pingTimeout?: NodeJS.Timeout;
+  private heartbeatInterval?: NodeJS.Timeout;
+  private lastHeartbeat: boolean = false;
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
@@ -54,28 +55,28 @@ export default class UserConnection {
 
   boot = () => {
     this.active = true;
+    this.lastHeartbeat = true;
     this.subscribe();
     this.ws.on('close', this.close);
-    this.ws.on('pong', this.delayedPing);
-    this.delayedPing();
+    this.ws.on('pong', this.heartbeatOnline);
+    this.heartbeatInterval = setInterval(this.heartbeat, 20000);
     logger.debug(`user ${this.session.userId} (${this.session.ip}) connected`);
   }
 
   close = () => {
+    if (!this.active) {
+      return;
+    }
+
     logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
 
     this.active = false;
+    this.ws.terminate();
     this.redisSubscriber.unsubscribe(null, this);
 
-    if (this.pingTimeout != null) {
-      clearTimeout(this.pingTimeout);
+    if (this.heartbeatInterval != null) {
+      clearInterval(this.heartbeatInterval);
     }
-  }
-
-  delayedPing = () => {
-    this.pingTimeout = setTimeout(() => {
-      this.ws.ping(ignoreError);
-    }, 10000);
   }
 
   event = (channel: string, messageString: string, message: any) => {
@@ -92,6 +93,21 @@ export default class UserConnection {
           this.ws.send(messageString, ignoreError);
         }
     }
+  }
+
+  heartbeat = () => {
+    if (!this.lastHeartbeat || !this.active) {
+      logger.debug(`user ${this.session.userId} (${this.session.ip}) no ping response`);
+      this.close();
+      return;
+    }
+
+    this.lastHeartbeat = false;
+    this.ws.ping(ignoreError);
+  }
+
+  heartbeatOnline = () => {
+    this.lastHeartbeat = true;
   }
 
   sessionCheck = (message: any) => {
