@@ -19,10 +19,10 @@
 import * as cookie from 'cookie';
 import * as crypto from 'crypto';
 import * as http from 'http';
-import {unserialize} from 'php-serialize';
+import { unserialize } from 'php-serialize';
 import * as redis from 'redis';
 import * as url from 'url';
-import {promisify} from 'util';
+import { promisify } from 'util';
 
 interface Params {
   appKey: string;
