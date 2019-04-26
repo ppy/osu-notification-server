@@ -109,6 +109,7 @@ export default class RedisSubscriber {
       }
 
       if (connections == null || connections.size === 0) {
+        delete this.userConnections[channel];
         toUnsubscribe.push(channel);
       }
     }
