@@ -104,13 +104,11 @@ export default class RedisSubscriber {
     for (const channel of channels) {
       const connections = this.userConnections[channel];
 
-      if (connections == null || connections.size === 0) {
-        continue;
+      if (connections != null) {
+        connections.delete(connection);
       }
 
-      connections.delete(connection);
-
-      if (connections.size === 0) {
+      if (connections == null || connections.size === 0) {
         toUnsubscribe.push(channel);
       }
     }
