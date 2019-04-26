@@ -19,6 +19,7 @@
 import * as mysql from 'mysql2/promise';
 import * as WebSocket from 'ws';
 import logger from './logger';
+import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
 import UserSession from './types/user-session';
 
@@ -27,10 +28,6 @@ interface Params {
   redisSubscriber: RedisSubscriber;
   session: UserSession;
   ws: WebSocket;
-}
-
-function ignoreError() {
-  // do nothing with the error
 }
 
 export default class UserConnection {
@@ -90,7 +87,7 @@ export default class UserConnection {
       default:
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
-          this.ws.send(messageString, ignoreError);
+          this.ws.send(messageString, noop);
         }
     }
   }
@@ -103,7 +100,7 @@ export default class UserConnection {
     }
 
     this.lastHeartbeat = false;
-    this.ws.ping(ignoreError);
+    this.ws.ping(noop);
   }
 
   heartbeatOnline = () => {

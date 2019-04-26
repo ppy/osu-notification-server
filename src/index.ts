@@ -24,6 +24,7 @@ import * as WebSocket from 'ws';
 import config from './config';
 import LaravelSession from './laravel-session';
 import logger from './logger';
+import noop from './noop';
 import OAuthVerifier from './oauth-verifier';
 import RedisSubscriber from './redis-subscriber';
 import UserSession from './types/user-session';
@@ -67,10 +68,6 @@ const getUserSession = async (req: http.IncomingMessage) => {
   return userSession;
 };
 
-function ignoreError() {
-  // do nothing
-}
-
 // variables
 const authenticationFailedMessage = JSON.stringify({ error: 'authentication failed' });
 const db = mysql.createPool(config.db);
@@ -89,7 +86,7 @@ wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
   try {
     session = await getUserSession(req);
   } catch (err) {
-    ws.send(authenticationFailedMessage, ignoreError);
+    ws.send(authenticationFailedMessage, noop);
     ws.terminate();
     return;
   }
