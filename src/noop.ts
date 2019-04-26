@@ -16,6 +16,6 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export default function nop() {
+export default function noop() {
   // do nothing
 }
