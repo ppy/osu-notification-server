@@ -64,11 +64,9 @@ export default class UserConnection {
   }
 
   close = () => {
-    if (!this.active) {
-      return;
+    if (this.active) {
+      logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
     }
-
-    logger.debug(`user ${this.session.userId} (${this.session.ip}) disconnected`);
 
     this.active = false;
     this.ws.terminate();
