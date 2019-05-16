@@ -132,9 +132,11 @@ export default class UserConnection {
 
     const forumTopic = this.forumTopicSubscriptions();
     const beatmapset = this.beatmapsetSubscriptions();
+    const chatChannels = this.chatSubscriptions();
 
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
+    ret.push(...await chatChannels);
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
     ret.push(this.userSessionChannel());
@@ -166,6 +168,22 @@ export default class UserConnection {
 
     return rows.map((row: any) => {
       return `new:beatmapset:${row.beatmapset_id}`;
+    });
+  }
+
+  private chatSubscriptions = async () => {
+    const [rows, fields] = await this.db.execute(`
+      SELECT osu_chat.user_channels.channel_id
+      FROM osu_chat.user_channels
+      JOIN osu_chat.channels on osu_chat.channels.channel_id = osu_chat.user_channels.channel_id
+      WHERE osu_chat.user_channels.user_id = ?
+      AND osu_chat.channels.type IN (
+        'PM'
+      );
+    `, [this.session.userId]);
+
+    return rows.map((row: any) => {
+      return `new:channel:${row.channel_id}`;
     });
   }
 
