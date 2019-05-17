@@ -16,26 +16,6 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import config from './config';
-import noop from './noop';
-
-function log(level: string, ...args: any) {
-  return console.log(`[${(new Date()).toJSON()}][${level}]`, ...args);
+export default function noop() {
+  // do nothing
 }
-
-let debug;
-if (config.debug) {
-  debug = (...args: any) => {
-    return log('debug', ...args);
-  };
-} else {
-  debug = noop;
-}
-
-const info = (...args: any) => {
-  return log('info', ...args);
-};
-
-const logger = {debug, info};
-
-export default logger;
