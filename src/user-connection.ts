@@ -138,6 +138,7 @@ export default class UserConnection {
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
     ret.push(...await chatChannels);
+    ret.push(this.userProfileChannel());
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
     ret.push(this.userSessionChannel());
@@ -154,6 +155,10 @@ export default class UserConnection {
 
     logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
     this.redisSubscriber[action](message.data.channel, this);
+  }
+
+  userProfileChannel() {
+    return `new:user:${this.session.userId}`;
   }
 
   userSessionChannel = () => {
