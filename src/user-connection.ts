@@ -173,7 +173,7 @@ export default class UserConnection {
   }
 
   private chatSubscriptions = async () => {
-    const chatDb = config.db.databaseChat;
+    const chatDb = config.dbName.chat;
     const [rows, fields] = await this.db.execute(`
       SELECT ${chatDb}.user_channels.channel_id
       FROM ${chatDb}.user_channels

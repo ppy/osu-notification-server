@@ -57,11 +57,13 @@ const config = {
   baseDir,
   db: {
     database: process.env.DB_DATABASE || 'osu',
-    databaseChat: process.env.DB_DATABASE_CHAT || 'osu_chat',
     host: process.env.DB_HOST || 'localhost',
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT ? +process.env.DB_PORT : undefined,
     user: process.env.DB_USERNAME || 'osuweb',
+  },
+  dbName: {
+    chat: process.env.DB_NAME_CHAT || 'osu_chat',
   },
   debug: process.env.APP_DEBUG === 'true',
   env,
