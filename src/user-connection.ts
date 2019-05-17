@@ -18,6 +18,7 @@
 
 import * as mysql from 'mysql2/promise';
 import * as WebSocket from 'ws';
+import config from './config';
 import logger from './logger';
 import RedisSubscriber from './redis-subscriber';
 import UserSession from './types/user-session';
@@ -172,12 +173,13 @@ export default class UserConnection {
   }
 
   private chatSubscriptions = async () => {
+    const chatDb = config.db.databaseChat;
     const [rows, fields] = await this.db.execute(`
-      SELECT osu_chat.user_channels.channel_id
-      FROM osu_chat.user_channels
-      JOIN osu_chat.channels on osu_chat.channels.channel_id = osu_chat.user_channels.channel_id
-      WHERE osu_chat.user_channels.user_id = ?
-      AND osu_chat.channels.type IN (
+      SELECT ${chatDb}.user_channels.channel_id
+      FROM ${chatDb}.user_channels
+      JOIN ${chatDb}.channels on ${chatDb}.channels.channel_id = ${chatDb}.user_channels.channel_id
+      WHERE ${chatDb}.user_channels.user_id = ?
+      AND ${chatDb}.channels.type IN (
         'PM'
       );
     `, [this.session.userId]);
