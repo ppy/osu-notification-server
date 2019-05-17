@@ -62,6 +62,9 @@ const config = {
     port: process.env.DB_PORT ? +process.env.DB_PORT : undefined,
     user: process.env.DB_USERNAME || 'osuweb',
   },
+  dbName: {
+    chat: process.env.DB_NAME_CHAT || 'osu_chat',
+  },
   debug: process.env.APP_DEBUG === 'true',
   env,
   redis: {

@@ -18,6 +18,7 @@
 
 import * as mysql from 'mysql2/promise';
 import * as WebSocket from 'ws';
+import config from './config';
 import logger from './logger';
 import RedisSubscriber from './redis-subscriber';
 import UserSession from './types/user-session';
@@ -132,9 +133,11 @@ export default class UserConnection {
 
     const forumTopic = this.forumTopicSubscriptions();
     const beatmapset = this.beatmapsetSubscriptions();
+    const chatChannels = this.chatSubscriptions();
 
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
+    ret.push(...await chatChannels);
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
     ret.push(this.userSessionChannel());
@@ -166,6 +169,23 @@ export default class UserConnection {
 
     return rows.map((row: any) => {
       return `new:beatmapset:${row.beatmapset_id}`;
+    });
+  }
+
+  private chatSubscriptions = async () => {
+    const chatDb = config.dbName.chat;
+    const [rows, fields] = await this.db.execute(`
+      SELECT ${chatDb}.user_channels.channel_id
+      FROM ${chatDb}.user_channels
+      JOIN ${chatDb}.channels on ${chatDb}.channels.channel_id = ${chatDb}.user_channels.channel_id
+      WHERE ${chatDb}.user_channels.user_id = ?
+      AND ${chatDb}.channels.type IN (
+        'PM'
+      );
+    `, [this.session.userId]);
+
+    return rows.map((row: any) => {
+      return `new:channel:${row.channel_id}`;
     });
   }
 
