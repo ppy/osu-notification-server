@@ -20,16 +20,21 @@ import * as dotenv from 'dotenv';
 import { PoolOptions as DbConfig } from 'mysql2';
 import * as path from 'path';
 import { ClientOpts as RedisConfig } from 'redis';
-import { ClientOptions as ServerConfig } from 'ws';
+import { ServerOptions as ServerConfig } from 'ws';
 
 interface Config {
   appKey: string;
   baseDir: string;
   db: DbConfig;
+  dbName: DbNames;
   debug: boolean;
   env: string;
   redis: RedisConfigs;
   server: ServerConfig;
+}
+
+interface DbNames {
+  chat: string;
 }
 
 interface RedisConfigs {
@@ -52,7 +57,7 @@ if (typeof process.env.APP_KEY !== 'string') {
   throw new Error('APP_KEY environment variable is not set.');
 }
 
-const config = {
+const config: Config = {
   appKey: process.env.APP_KEY,
   baseDir,
   db: {

@@ -90,7 +90,7 @@ export default class OAuthVerifier {
       return null;
     }
 
-    const [rows, fields] = await this.db.execute(`
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
       SELECT user_id, scopes
       FROM oauth_access_tokens
       WHERE revoked = false AND expires_at > now() AND id = ?

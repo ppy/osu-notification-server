@@ -163,20 +163,20 @@ export default class UserConnection {
   }
 
   private beatmapsetSubscriptions = async () => {
-    const [rows, fields] = await this.db.execute(`
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
       SELECT beatmapset_id
       FROM beatmapset_watches
       WHERE user_id = ?
     `, [this.session.userId]);
 
-    return rows.map((row: any) => {
+    return rows.map((row) => {
       return `new:beatmapset:${row.beatmapset_id}`;
     });
   }
 
   private chatSubscriptions = async () => {
     const chatDb = config.dbName.chat;
-    const [rows, fields] = await this.db.execute(`
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
       SELECT ${chatDb}.user_channels.channel_id
       FROM ${chatDb}.user_channels
       JOIN ${chatDb}.channels on ${chatDb}.channels.channel_id = ${chatDb}.user_channels.channel_id
@@ -186,20 +186,20 @@ export default class UserConnection {
       );
     `, [this.session.userId]);
 
-    return rows.map((row: any) => {
+    return rows.map((row) => {
       return `new:channel:${row.channel_id}`;
     });
   }
 
   private forumTopicSubscriptions = async () => {
-    const [rows, fields] = await this.db.execute(`
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
       SELECT topic_id
       FROM phpbb_topics_watch
       WHERE user_id = ?
         AND mail = true
     `, [this.session.userId]);
 
-    return rows.map((row: any) => {
+    return rows.map((row) => {
       return `new:forum_topic:${row.topic_id}`;
     });
   }
