@@ -131,12 +131,12 @@ export default class UserConnection {
     const forumTopic = this.forumTopicSubscriptions();
     const beatmapset = this.beatmapsetSubscriptions();
     const chatChannels = this.chatSubscriptions();
-    const watches = this.watches();
+    const follows = this.follows();
 
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
     ret.push(...await chatChannels);
-    ret.push(...await watches);
+    ret.push(...await follows);
     ret.push(this.userProfileChannel());
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
@@ -193,26 +193,13 @@ export default class UserConnection {
     });
   }
 
-  private forumTopicSubscriptions = async () => {
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT topic_id
-      FROM phpbb_topics_watch
-      WHERE user_id = ?
-        AND mail = true
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:forum_topic:${row.topic_id}`;
-    });
-  }
-
-  private watches = async () => {
+  private follows = async () => {
     let rows: mysql.RowDataPacket[];
 
     try {
       [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
         SELECT notifiable_type, notifiable_id, subtype
-        FROM watches
+        FROM follows
         WHERE user_id = ?
       `, [this.session.userId]);
     } catch (err) {
@@ -226,6 +213,19 @@ export default class UserConnection {
 
     return rows.map((row: any) => {
       return `new:${row.notifiable_type}:${row.notifiable_id}:${row.subtype}`;
+    });
+  }
+
+  private forumTopicSubscriptions = async () => {
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
+      SELECT topic_id
+      FROM phpbb_topics_watch
+      WHERE user_id = ?
+        AND mail = true
+    `, [this.session.userId]);
+
+    return rows.map((row) => {
+      return `new:forum_topic:${row.topic_id}`;
     });
   }
 }
