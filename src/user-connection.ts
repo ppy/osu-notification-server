@@ -131,10 +131,12 @@ export default class UserConnection {
     const forumTopic = this.forumTopicSubscriptions();
     const beatmapset = this.beatmapsetSubscriptions();
     const chatChannels = this.chatSubscriptions();
+    const follows = this.follows();
 
     ret.push(...await forumTopic);
     ret.push(...await beatmapset);
     ret.push(...await chatChannels);
+    ret.push(...await follows);
     ret.push(this.userProfileChannel());
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
@@ -188,6 +190,29 @@ export default class UserConnection {
 
     return rows.map((row) => {
       return `new:channel:${row.channel_id}`;
+    });
+  }
+
+  private follows = async () => {
+    let rows: mysql.RowDataPacket[];
+
+    try {
+      [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
+        SELECT notifiable_type, notifiable_id, subtype
+        FROM follows
+        WHERE user_id = ?
+      `, [this.session.userId]);
+    } catch (err) {
+      // TODO: remove once migrated
+      if (err.code === 'ER_NO_SUCH_TABLE') {
+        return [];
+      }
+
+      throw err;
+    }
+
+    return rows.map((row: any) => {
+      return `new:${row.notifiable_type}:${row.notifiable_id}:${row.subtype}`;
     });
   }
 
