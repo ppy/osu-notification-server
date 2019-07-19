@@ -107,15 +107,21 @@ export default class UserConnection {
   }
 
   sessionCheck = (message: any) => {
-    if (message.event === 'logout') {
-      for (const key of message.data.keys) {
-        if (key === this.session.key) {
-          this.ws.send(JSON.stringify({ event: 'logout' }), () => {
-            logger.debug(`user ${this.session.userId} (${this.session.ip}) logged out`);
-            this.ws.close();
-          });
+    switch (message.event) {
+      case 'logout':
+        for (const key of message.data.keys) {
+          if (key === this.session.key) {
+            this.ws.send(JSON.stringify({ event: 'logout' }), () => {
+              logger.debug(`user ${this.session.userId} (${this.session.ip}) logged out`);
+              this.ws.close();
+            });
+          }
         }
-      }
+        break;
+      case 'verified':
+        if (message.data.key === this.session.key) {
+          this.ws.send(JSON.stringify({ event: 'verified' }), noop);
+        }
     }
   }
 
