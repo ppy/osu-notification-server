@@ -109,7 +109,9 @@ export default class OAuthVerifier {
       if (scope === '*' || scope === 'read') {
         return {
           key: `oauth:${oAuthToken}`,
+          requiresVerification: false,
           userId,
+          verified: false,
         };
       }
     }

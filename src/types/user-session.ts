@@ -19,5 +19,7 @@
 export default interface UserSession {
   ip?: string;
   key: string;
+  requiresVerification: boolean;
   userId: number;
+  verified: boolean;
 }

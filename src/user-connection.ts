@@ -84,6 +84,10 @@ export default class UserConnection {
         this.sessionCheck(message);
         break;
       default:
+        if (this.session.requiresVerification && !this.session.verified) {
+          return;
+        }
+
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
           this.ws.send(messageString, noop);
@@ -120,6 +124,7 @@ export default class UserConnection {
         break;
       case 'verified':
         if (message.data.key === this.session.key) {
+          this.session.verified = true;
           this.ws.send(JSON.stringify({ event: 'verified' }), noop);
         }
     }
