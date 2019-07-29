@@ -38,7 +38,9 @@ interface EncryptedSession {
 interface Session {
   csrf: string;
   key: string;
+  requiresVerification: boolean;
   userId: number;
+  verified: boolean;
 }
 
 const isEncryptedSession = (arg: any): arg is EncryptedSession => {
@@ -79,11 +81,15 @@ export default class LaravelSession {
 
     const rawData = unserialize(unserialize(serializedData), {}, {strict: false});
 
+    // login_<authName>_<hashedAuthClass>
+    const userId = rawData.login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d;
+
     return {
       csrf: rawData._token,
       key,
-      // login_<authName>_<hashedAuthClass>
-      userId: rawData.login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d,
+      requiresVerification: rawData.requires_verification,
+      userId,
+      verified: rawData.verified,
     };
   }
 
@@ -141,7 +147,9 @@ export default class LaravelSession {
     if (hasValidToken) {
       return {
         key: session.key,
+        requiresVerification: session.requiresVerification,
         userId: session.userId,
+        verified: session.verified,
       };
     } else {
       throw new Error('invalid csrf token');
