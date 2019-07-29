@@ -123,9 +123,7 @@ export default class UserConnection {
         }
         break;
       case 'verification_requirement_change':
-        if (message.data.key === this.session.key) {
-          this.session.requiresVerification = message.data.requires_verification;
-        }
+        this.session.requiresVerification = message.data.requires_verification;
         break;
       case 'verified':
         if (message.data.key === this.session.key) {
