@@ -155,6 +155,7 @@ export default class UserConnection {
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.subscriptionUpdateChannel());
     ret.push(this.userSessionChannel());
+    ret.push(`private:user:${this.session.userId}`);
 
     return ret;
   }
