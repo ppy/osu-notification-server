@@ -40,6 +40,7 @@ export default class UserConnection {
   private db: mysql.Pool;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat: boolean = false;
+  private notificationOptions = new Map<string, any>();
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
@@ -54,6 +55,13 @@ export default class UserConnection {
   boot = () => {
     this.active = true;
     this.lastHeartbeat = true;
+     // TODO: should wait?
+    this.loadNotificationOptions().then((notificationOptions) => {
+      this.notificationOptions = notificationOptions;
+    }).catch((error) => {
+      // TODO: add stats somewhere?
+      logger.info(error);
+    });
     this.subscribe();
     this.ws.on('close', this.close);
     this.ws.on('pong', this.heartbeatOnline);
@@ -242,5 +250,19 @@ export default class UserConnection {
     return rows.map((row) => {
       return `new:forum_topic:${row.topic_id}`;
     });
+  }
+
+  private loadNotificationOptions = async () => {
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
+      SELECT name, details
+      FROM user_notification_options
+      WHERE user_id = ?
+        AND details IS NOT NULL
+    `, [this.session.userId]);
+
+    const map = new Map<string, object>();
+    rows.forEach((row) => map.set(row.name, row.details));
+
+    return map;
   }
 }
