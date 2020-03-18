@@ -99,6 +99,11 @@ export default class UserConnection {
           return;
         }
 
+        if (this.notificationOptions.get(message.data.name)?.push === false) {
+          logger.debug(`user ${this.session.userId} notification disabled for ${message.data.name}`);
+          return;
+        }
+
         this.ws.send(messageString, noop);
     }
   }
