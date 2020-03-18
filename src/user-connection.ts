@@ -31,6 +31,24 @@ interface Params {
   ws: WebSocket;
 }
 
+interface NotificationOption {
+  details: NotificationSetting;
+  name: string;
+}
+
+interface NotificationOptionChangeEvent {
+  data: NotificationOption;
+  event: 'notification_option.change';
+}
+
+interface NotificationSetting {
+  push?: boolean;
+}
+
+function isNotificationOptionChangeEvent(arg: any): arg is NotificationOptionChangeEvent {
+  return arg.event === 'notification_option.change';
+}
+
 export default class UserConnection {
   get isActive() {
     return this.active;
@@ -40,7 +58,7 @@ export default class UserConnection {
   private db: mysql.Pool;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat: boolean = false;
-  private notificationOptions = new Map<string, any>();
+  private notificationOptions = new Map<string, NotificationSetting>();
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
@@ -178,8 +196,8 @@ export default class UserConnection {
   }
 
   updateSubscription = (message: any) => {
-    if (message.event === 'notification_option.change') {
-      return this.updateNotificationOptions(message);
+    if (isNotificationOptionChangeEvent(message)) {
+      return this.updateNotificationOptions(message.data);
     }
 
     const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
@@ -269,14 +287,14 @@ export default class UserConnection {
         AND details IS NOT NULL
     `, [this.session.userId]);
 
-    const map = new Map<string, object>();
+    const map = new Map<string, NotificationSetting>();
     rows.forEach((row) => map.set(row.name, row.details));
 
     return map;
   }
 
-  private updateNotificationOptions(message: any) {
-    logger.debug(`user ${this.session.userId} (${this.session.ip}) ${message.event} ${JSON.stringify(message.data)}`);
-    return this.notificationOptions.set(message.data.name, message.data.details);
+  private updateNotificationOptions(option: NotificationOption) {
+    logger.debug(`user ${this.session.userId} (${this.session.ip}) notification_option.change ${option.name}`);
+    return this.notificationOptions.set(option.name, option.details);
   }
 }
