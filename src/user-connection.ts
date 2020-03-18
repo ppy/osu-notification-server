@@ -78,20 +78,20 @@ export default class UserConnection {
   event = (channel: string, messageString: string, message: any) => {
     switch (channel) {
       case this.subscriptionUpdateChannel():
-        this.updateSubscription(message);
-        break;
+        return this.updateSubscription(message);
       case this.userSessionChannel():
-        this.sessionCheck(message);
-        break;
+        return this.sessionCheck(message);
       default:
         if (this.session.requiresVerification && !this.session.verified) {
           return;
         }
 
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
-        if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
-          this.ws.send(messageString, noop);
+        if (typeof message.data !== 'object' || message.data.source_user_id === this.session.userId) {
+          return;
         }
+
+        this.ws.send(messageString, noop);
     }
   }
 
