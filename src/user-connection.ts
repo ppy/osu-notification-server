@@ -110,6 +110,7 @@ export default class UserConnection {
           return;
         }
 
+        // defaults to enabled if not set.
         if (this.notificationOptions.get(message.data.name)?.push === false) {
           logger.debug(`user ${this.session.userId} notification disabled for ${message.data.name}`);
           return;
@@ -283,7 +284,11 @@ export default class UserConnection {
     `, [this.session.userId]);
 
     const map = new Map<string, NotificationSetting>();
-    rows.forEach((row) => map.set(row.name, row.details));
+    rows.forEach((row) => {
+      if (row.details.push != null) {
+        map.set(row.name, row.details);
+      }
+    });
 
     return map;
   }
