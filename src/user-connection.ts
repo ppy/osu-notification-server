@@ -73,13 +73,6 @@ export default class UserConnection {
   boot = () => {
     this.active = true;
     this.lastHeartbeat = true;
-     // TODO: should wait?
-    this.loadNotificationOptions().then((notificationOptions) => {
-      this.notificationOptions = notificationOptions;
-    }).catch((error) => {
-      // TODO: add stats somewhere?
-      logger.info(error);
-    });
     this.subscribe();
     this.ws.on('close', this.close);
     this.ws.on('pong', this.heartbeatOnline);
@@ -165,9 +158,11 @@ export default class UserConnection {
   }
 
   subscribe = async () => {
-    const subscriptions = await this.subscriptions();
+    const notificationOptions = this.loadNotificationOptions();
+    const subscriptions = this.subscriptions();
 
-    this.redisSubscriber.subscribe(subscriptions, this);
+    this.notificationOptions = await notificationOptions;
+    this.redisSubscriber.subscribe(await subscriptions, this);
   }
 
   subscriptions = async () => {
