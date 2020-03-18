@@ -178,6 +178,10 @@ export default class UserConnection {
   }
 
   updateSubscription = (message: any) => {
+    if (message.event === 'notification_option.change') {
+      return this.updateNotificationOptions(message);
+    }
+
     const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
 
     logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
@@ -269,5 +273,10 @@ export default class UserConnection {
     rows.forEach((row) => map.set(row.name, row.details));
 
     return map;
+  }
+
+  private updateNotificationOptions(message: any) {
+    logger.debug(`user ${this.session.userId} (${this.session.ip}) ${message.event} ${JSON.stringify(message.data)}`);
+    return this.notificationOptions.set(message.data.name, message.data.details);
   }
 }
