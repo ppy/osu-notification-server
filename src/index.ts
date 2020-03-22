@@ -81,6 +81,8 @@ const wss = new WebSocket.Server(config.server);
 logger.info(`listening on ${config.server.host}:${config.server.port}`);
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
+  ws.on('error', (error) => logger.info('websocket error:', error));
+
   let session;
 
   try {
