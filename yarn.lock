@@ -28,13 +28,13 @@
 
 "@types/mysql2@types/mysql2":
   version "1.0.0"
-  resolved "https://codeload.github.com/types/mysql2/tar.gz/e2be194d8db7a1a64612e5f645d5cad8223328ab"
+  resolved "https://codeload.github.com/types/mysql2/tar.gz/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d"
   dependencies:
-    "@types/mysql" types/mysql#v2.0.0
+    "@types/mysql" types/mysql
 
-"@types/mysql@types/mysql#v2.0.0":
+"@types/mysql@types/mysql":
   version "2.0.0"
-  resolved "https://codeload.github.com/types/mysql/tar.gz/da645a82afd66419ed439dddf174648aa68ba1f9"
+  resolved "https://codeload.github.com/types/mysql/tar.gz/41e381415afbb79452c0501ca3cf220c2cd390bc"
 
 "@types/node@*":
   version "11.11.3"
