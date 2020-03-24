@@ -28,13 +28,13 @@
 
 "@types/mysql2@types/mysql2":
   version "1.0.0"
-  resolved "https://codeload.github.com/types/mysql2/tar.gz/e2be194d8db7a1a64612e5f645d5cad8223328ab"
+  resolved "https://codeload.github.com/types/mysql2/tar.gz/b549352cda0b83fe8c4f4c11a1b4beb0b0cb0f5d"
   dependencies:
-    "@types/mysql" types/mysql#v2.0.0
+    "@types/mysql" types/mysql
 
-"@types/mysql@types/mysql#v2.0.0":
+"@types/mysql@types/mysql":
   version "2.0.0"
-  resolved "https://codeload.github.com/types/mysql/tar.gz/da645a82afd66419ed439dddf174648aa68ba1f9"
+  resolved "https://codeload.github.com/types/mysql/tar.gz/41e381415afbb79452c0501ca3cf220c2cd390bc"
 
 "@types/node@*":
   version "11.11.3"
@@ -568,9 +568,9 @@ tsutils@^2.29.0:
     tslib "^1.8.1"
 
 typescript@^3.2.4:
-  version "3.3.3333"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.3.3333.tgz#171b2c5af66c59e9431199117a3bcadc66fdcfd6"
-  integrity sha512-JjSKsAfuHBE/fB2oZ8NxtRTk5iGcg6hkYXMnZ3Wc+b2RSqejEqTaem11mHASMnFilHrax3sLK0GDzcJrekZYLw==
+  version "3.8.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.8.3.tgz#409eb8544ea0335711205869ec458ab109ee1061"
+  integrity sha512-MYlEfn5VrLNsgudQTVJeNaQFUAI7DkhnOjdpAp4T+ku1TfQClewlbSuTVHiA+8skNBgaf02TL/kLOvig4y3G8w==
 
 wrappy@1:
   version "1.0.2"

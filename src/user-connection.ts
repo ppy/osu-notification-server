@@ -31,6 +31,24 @@ interface Params {
   ws: WebSocket;
 }
 
+interface NotificationOption {
+  details: NotificationSetting;
+  name: string;
+}
+
+interface NotificationOptionChangeEvent {
+  data: NotificationOption;
+  event: 'notification_option.change';
+}
+
+interface NotificationSetting {
+  push?: boolean;
+}
+
+function isNotificationOptionChangeEvent(arg: any): arg is NotificationOptionChangeEvent {
+  return arg.event === 'notification_option.change';
+}
+
 export default class UserConnection {
   get isActive() {
     return this.active;
@@ -40,6 +58,7 @@ export default class UserConnection {
   private db: mysql.Pool;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat: boolean = false;
+  private notificationOptions = new Map<string, NotificationSetting>();
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
@@ -78,20 +97,26 @@ export default class UserConnection {
   event = (channel: string, messageString: string, message: any) => {
     switch (channel) {
       case this.subscriptionUpdateChannel():
-        this.updateSubscription(message);
-        break;
+        return this.updateSubscription(message);
       case this.userSessionChannel():
-        this.sessionCheck(message);
-        break;
+        return this.sessionCheck(message);
       default:
         if (this.session.requiresVerification && !this.session.verified) {
           return;
         }
 
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
-        if (typeof message.data === 'object' && message.data.source_user_id !== this.session.userId) {
-          this.ws.send(messageString, noop);
+        if (typeof message.data !== 'object' || message.data.source_user_id === this.session.userId) {
+          return;
         }
+
+        // defaults to enabled if not set.
+        if (this.notificationOptions.get(message.data.name)?.push === false) {
+          logger.debug(`user ${this.session.userId} notification disabled for ${message.data.name}`);
+          return;
+        }
+
+        this.ws.send(messageString, noop);
     }
   }
 
@@ -134,9 +159,11 @@ export default class UserConnection {
   }
 
   subscribe = async () => {
-    const subscriptions = await this.subscriptions();
+    const notificationOptions = this.loadNotificationOptions();
+    const subscriptions = this.subscriptions();
 
-    this.redisSubscriber.subscribe(subscriptions, this);
+    this.notificationOptions = await notificationOptions;
+    this.redisSubscriber.subscribe(await subscriptions, this);
   }
 
   subscriptions = async () => {
@@ -165,6 +192,10 @@ export default class UserConnection {
   }
 
   updateSubscription = (message: any) => {
+    if (isNotificationOptionChangeEvent(message)) {
+      return this.updateNotificationOptions(message.data);
+    }
+
     const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
 
     logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
@@ -242,5 +273,28 @@ export default class UserConnection {
     return rows.map((row) => {
       return `new:forum_topic:${row.topic_id}`;
     });
+  }
+
+  private loadNotificationOptions = async () => {
+    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
+      SELECT name, details
+      FROM user_notification_options
+      WHERE user_id = ?
+        AND details IS NOT NULL
+    `, [this.session.userId]);
+
+    const map = new Map<string, NotificationSetting>();
+    rows.forEach((row) => {
+      if (row.details.push != null) {
+        map.set(row.name, row.details);
+      }
+    });
+
+    return map;
+  }
+
+  private updateNotificationOptions(option: NotificationOption) {
+    logger.debug(`user ${this.session.userId} (${this.session.ip}) notification_option.change ${option.name}`);
+    return this.notificationOptions.set(option.name, option.details);
   }
 }
