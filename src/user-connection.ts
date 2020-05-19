@@ -18,7 +18,6 @@
 
 import * as mysql from 'mysql2/promise';
 import * as WebSocket from 'ws';
-import config from './config';
 import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
@@ -31,40 +30,19 @@ interface Params {
   ws: WebSocket;
 }
 
-interface NotificationOption {
-  details: NotificationSetting;
-  name: string;
-}
-
-interface NotificationOptionChangeEvent {
-  data: NotificationOption;
-  event: 'notification_option.change';
-}
-
-interface NotificationSetting {
-  push?: boolean;
-}
-
-function isNotificationOptionChangeEvent(arg: any): arg is NotificationOptionChangeEvent {
-  return arg.event === 'notification_option.change';
-}
-
 export default class UserConnection {
   get isActive() {
     return this.active;
   }
 
   private active: boolean = false;
-  private db: mysql.Pool;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat: boolean = false;
-  private notificationOptions = new Map<string, NotificationSetting>();
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
 
   constructor(params: Params) {
-    this.db = params.db;
     this.redisSubscriber = params.redisSubscriber;
     this.session = params.session;
     this.ws = params.ws;
@@ -96,8 +74,6 @@ export default class UserConnection {
 
   event = (channel: string, messageString: string, message: any) => {
     switch (channel) {
-      case this.subscriptionUpdateChannel():
-        return this.updateSubscription(message);
       case this.userSessionChannel():
         return this.sessionCheck(message);
       default:
@@ -107,12 +83,6 @@ export default class UserConnection {
 
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data !== 'object' || message.data.source_user_id === this.session.userId) {
-          return;
-        }
-
-        // defaults to enabled if not set.
-        if (this.notificationOptions.get(message.data.name)?.push === false) {
-          logger.debug(`user ${this.session.userId} notification disabled for ${message.data.name}`);
           return;
         }
 
@@ -159,142 +129,20 @@ export default class UserConnection {
   }
 
   subscribe = async () => {
-    const notificationOptions = this.loadNotificationOptions();
-    const subscriptions = this.subscriptions();
-
-    this.notificationOptions = await notificationOptions;
-    this.redisSubscriber.subscribe(await subscriptions, this);
+    this.redisSubscriber.subscribe(await this.subscriptions(), this);
   }
 
   subscriptions = async () => {
     const ret = [];
 
-    const forumTopic = this.forumTopicSubscriptions();
-    const beatmapset = this.beatmapsetSubscriptions();
-    const chatChannels = this.chatSubscriptions();
-    const follows = this.follows();
-
-    ret.push(...await forumTopic);
-    ret.push(...await beatmapset);
-    ret.push(...await chatChannels);
-    ret.push(...await follows);
-    ret.push(this.userProfileChannel());
     ret.push(`notification_read:${this.session.userId}`);
-    ret.push(this.subscriptionUpdateChannel());
     ret.push(this.userSessionChannel());
     ret.push(`private:user:${this.session.userId}`);
 
     return ret;
   }
 
-  subscriptionUpdateChannel = () => {
-    return `user_subscription:${this.session.userId}`;
-  }
-
-  updateSubscription = (message: any) => {
-    if (isNotificationOptionChangeEvent(message)) {
-      return this.updateNotificationOptions(message.data);
-    }
-
-    const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
-
-    logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
-    this.redisSubscriber[action](message.data.channel, this);
-  }
-
-  userProfileChannel() {
-    return `new:user:${this.session.userId}`;
-  }
-
   userSessionChannel = () => {
     return `user_session:${this.session.userId}`;
-  }
-
-  private beatmapsetSubscriptions = async () => {
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT beatmapset_id
-      FROM beatmapset_watches
-      WHERE user_id = ?
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:beatmapset:${row.beatmapset_id}`;
-    });
-  }
-
-  private chatSubscriptions = async () => {
-    const chatDb = config.dbName.chat;
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT ${chatDb}.user_channels.channel_id
-      FROM ${chatDb}.user_channels
-      JOIN ${chatDb}.channels on ${chatDb}.channels.channel_id = ${chatDb}.user_channels.channel_id
-      WHERE ${chatDb}.user_channels.user_id = ?
-      AND ${chatDb}.channels.type IN (
-        'PM'
-      );
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:channel:${row.channel_id}`;
-    });
-  }
-
-  private follows = async () => {
-    let rows: mysql.RowDataPacket[];
-
-    try {
-      [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-        SELECT notifiable_type, notifiable_id, subtype
-        FROM follows
-        WHERE user_id = ?
-      `, [this.session.userId]);
-    } catch (err) {
-      // TODO: remove once migrated
-      if (err.code === 'ER_NO_SUCH_TABLE') {
-        return [];
-      }
-
-      throw err;
-    }
-
-    return rows.map((row: any) => {
-      return `new:${row.notifiable_type}:${row.notifiable_id}:${row.subtype}`;
-    });
-  }
-
-  private forumTopicSubscriptions = async () => {
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT topic_id
-      FROM phpbb_topics_watch
-      WHERE user_id = ?
-        AND mail = true
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:forum_topic:${row.topic_id}`;
-    });
-  }
-
-  private loadNotificationOptions = async () => {
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT name, details
-      FROM user_notification_options
-      WHERE user_id = ?
-        AND details IS NOT NULL
-    `, [this.session.userId]);
-
-    const map = new Map<string, NotificationSetting>();
-    rows.forEach((row) => {
-      if (row.details.push != null) {
-        map.set(row.name, row.details);
-      }
-    });
-
-    return map;
-  }
-
-  private updateNotificationOptions(option: NotificationOption) {
-    logger.debug(`user ${this.session.userId} (${this.session.ip}) notification_option.change ${option.name}`);
-    return this.notificationOptions.set(option.name, option.details);
   }
 }
