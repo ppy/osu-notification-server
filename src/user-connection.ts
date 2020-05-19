@@ -43,7 +43,6 @@ export default class UserConnection {
   private ws: WebSocket;
 
   constructor(params: Params) {
-    this.db = params.db;
     this.redisSubscriber = params.redisSubscriber;
     this.session = params.session;
     this.ws = params.ws;
