@@ -77,8 +77,6 @@ export default class UserConnection {
 
   event = (channel: string, messageString: string, message: any) => {
     switch (channel) {
-      case this.subscriptionUpdateChannel():
-        return this.updateSubscription(message);
       case this.userSessionChannel():
         return this.sessionCheck(message);
       default:
@@ -151,22 +149,10 @@ export default class UserConnection {
     ret.push(...await follows);
     ret.push(this.userProfileChannel());
     ret.push(`notification_read:${this.session.userId}`);
-    ret.push(this.subscriptionUpdateChannel());
     ret.push(this.userSessionChannel());
     ret.push(`private:user:${this.session.userId}`);
 
     return ret;
-  }
-
-  subscriptionUpdateChannel = () => {
-    return `user_subscription:${this.session.userId}`;
-  }
-
-  updateSubscription = (message: any) => {
-    const action = message.event === 'remove' ? 'unsubscribe' : 'subscribe';
-
-    logger.debug(`user ${this.session.userId} (${this.session.ip}) ${action} to ${message.data.channel}`);
-    this.redisSubscriber[action](message.data.channel, this);
   }
 
   userProfileChannel() {
