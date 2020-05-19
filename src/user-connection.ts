@@ -18,7 +18,6 @@
 
 import * as mysql from 'mysql2/promise';
 import * as WebSocket from 'ws';
-import config from './config';
 import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
@@ -37,7 +36,6 @@ export default class UserConnection {
   }
 
   private active: boolean = false;
-  private db: mysql.Pool;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat: boolean = false;
   private redisSubscriber: RedisSubscriber;
@@ -138,16 +136,6 @@ export default class UserConnection {
   subscriptions = async () => {
     const ret = [];
 
-    const forumTopic = this.forumTopicSubscriptions();
-    const beatmapset = this.beatmapsetSubscriptions();
-    const chatChannels = this.chatSubscriptions();
-    const follows = this.follows();
-
-    ret.push(...await forumTopic);
-    ret.push(...await beatmapset);
-    ret.push(...await chatChannels);
-    ret.push(...await follows);
-    ret.push(this.userProfileChannel());
     ret.push(`notification_read:${this.session.userId}`);
     ret.push(this.userSessionChannel());
     ret.push(`private:user:${this.session.userId}`);
@@ -155,76 +143,7 @@ export default class UserConnection {
     return ret;
   }
 
-  userProfileChannel() {
-    return `new:user:${this.session.userId}`;
-  }
-
   userSessionChannel = () => {
     return `user_session:${this.session.userId}`;
-  }
-
-  private beatmapsetSubscriptions = async () => {
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT beatmapset_id
-      FROM beatmapset_watches
-      WHERE user_id = ?
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:beatmapset:${row.beatmapset_id}`;
-    });
-  }
-
-  private chatSubscriptions = async () => {
-    const chatDb = config.dbName.chat;
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT ${chatDb}.user_channels.channel_id
-      FROM ${chatDb}.user_channels
-      JOIN ${chatDb}.channels on ${chatDb}.channels.channel_id = ${chatDb}.user_channels.channel_id
-      WHERE ${chatDb}.user_channels.user_id = ?
-      AND ${chatDb}.channels.type IN (
-        'PM'
-      );
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:channel:${row.channel_id}`;
-    });
-  }
-
-  private follows = async () => {
-    let rows: mysql.RowDataPacket[];
-
-    try {
-      [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-        SELECT notifiable_type, notifiable_id, subtype
-        FROM follows
-        WHERE user_id = ?
-      `, [this.session.userId]);
-    } catch (err) {
-      // TODO: remove once migrated
-      if (err.code === 'ER_NO_SUCH_TABLE') {
-        return [];
-      }
-
-      throw err;
-    }
-
-    return rows.map((row: any) => {
-      return `new:${row.notifiable_type}:${row.notifiable_id}:${row.subtype}`;
-    });
-  }
-
-  private forumTopicSubscriptions = async () => {
-    const [rows] = await this.db.execute<mysql.RowDataPacket[]>(`
-      SELECT topic_id
-      FROM phpbb_topics_watch
-      WHERE user_id = ?
-        AND mail = true
-    `, [this.session.userId]);
-
-    return rows.map((row) => {
-      return `new:forum_topic:${row.topic_id}`;
-    });
   }
 }
