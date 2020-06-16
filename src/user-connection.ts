@@ -82,7 +82,7 @@ export default class UserConnection {
         }
 
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
-        if (typeof message.data !== 'object' || message.data.source_user_id === this.session.userId) {
+        if (typeof message.data !== 'object') {
           return;
         }
 
