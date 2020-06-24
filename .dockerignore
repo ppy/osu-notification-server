@@ -1,0 +1,7 @@
+# should be in sync with .gitignore (with additional .git)
+.env
+.git/
+build/
+node_modules/
+oauth-public.key
+yarn-error.log

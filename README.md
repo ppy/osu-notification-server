@@ -37,3 +37,25 @@ Run `yarn lint --fix` and additionally do manual fixes if needed.
 ### Testing
 
 To be added.
+
+## Docker
+
+To build:
+
+    # repository should be username/repository when using docker hub for convenient push
+    docker build --tag <repository>:<tag> .
+
+To run, the following items need to be passed to the container:
+- environment variables: either directly using docker command or bind mount to `/app/.env`
+- oauth public key: bind mount to `/app/oauth-public.key`
+- listening port: for the host
+
+Example:
+
+    docker run \
+      --rm \
+      --publish 3000:3000 \
+      -v /path/to/.env:/app/.env \
+      -v /path/to/oauth-public.key:/app/oauth-public.key \
+      -e NOTIFICATION_REDIS_HOST=redis \
+      ppy/osu-notification-server:latest

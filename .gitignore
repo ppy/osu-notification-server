@@ -1,3 +1,4 @@
+# should be in sync with .dockerignore
 /.env
 /build
 /node_modules
