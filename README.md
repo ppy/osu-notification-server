@@ -56,7 +56,7 @@ Example:
 
     docker run \
       --rm \
-      --publish 3000:3000 \
+      --publish 2345:2345 \
       -v /path/to/.env:/app/.env \
       -v /path/to/oauth-public.key:/app/oauth-public.key \
       -e NOTIFICATION_REDIS_HOST=redis \
