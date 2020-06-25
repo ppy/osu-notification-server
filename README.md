@@ -50,6 +50,8 @@ To run, the following items need to be passed to the container:
 - oauth public key: bind mount to `/app/oauth-public.key`
 - listening port: for the host
 
+Make sure the files are globally readable as the container process runs as limited privilege user
+
 Example:
 
     docker run \

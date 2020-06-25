@@ -13,4 +13,7 @@ RUN yarn build
 
 ENV NOTIFICATION_SERVER_LISTEN_HOST 0.0.0.0
 
+RUN adduser --system osuweb
+USER osuweb
+
 CMD ["yarn", "serve"]
