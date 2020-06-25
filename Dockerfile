@@ -15,7 +15,7 @@ ENV NOTIFICATION_SERVER_LISTEN_HOST 0.0.0.0
 ENV NOTIFICATION_SERVER_LISTEN_PORT 2345
 EXPOSE 2345
 
-RUN adduser --system osuweb
+RUN addgroup --system osuweb && adduser --system -G osuweb osuweb
 USER osuweb
 
 CMD ["yarn", "serve"]
