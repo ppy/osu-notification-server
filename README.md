@@ -68,7 +68,7 @@ The process is single-threaded. Launch multiple containers to handle more connec
 
 ### Connection limit
 
-Single process can handle over 3000 connections. Each process is known to be able to handle over 3000 connections. Make sure to increase file descriptor limit for the container process (`--ulimit nofile=10000` option in docker).
+Each process is known to be able to handle over 3000 connections. Make sure to increase file descriptor limit for the container process (`--ulimit nofile=10000` option in docker) otherwise it won't be able to accept enough connections.
 
 ### Process monitoring
 
