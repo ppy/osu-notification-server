@@ -59,8 +59,8 @@ if (typeof process.env.APP_KEY !== 'string') {
 
 const redisRetry = (type: string) => {
   return (options: RedisRetryStrategyOptions) => {
-    const wait = 5000; // in milliseconds
-    const maxAttempts = 10;
+    const wait = 1000; // in milliseconds
+    const maxAttempts = 60;
 
     if (options.attempt > maxAttempts) {
       throw new Error(`Failed connecting to redis (${type})`);
