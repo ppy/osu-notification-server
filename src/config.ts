@@ -19,7 +19,7 @@
 import * as dotenv from 'dotenv';
 import { PoolOptions as DbConfig } from 'mysql2';
 import * as path from 'path';
-import { ClientOpts as RedisConfig } from 'redis';
+import { ClientOpts as RedisConfig, RetryStrategyOptions as RedisRetryStrategyOptions } from 'redis';
 import { ServerOptions as ServerConfig } from 'ws';
 
 interface Config {
@@ -57,6 +57,19 @@ if (typeof process.env.APP_KEY !== 'string') {
   throw new Error('APP_KEY environment variable is not set.');
 }
 
+const redisRetry = (type: string) => {
+  return (options: RedisRetryStrategyOptions) => {
+    const wait = 1000; // in milliseconds
+    const maxAttempts = 60;
+
+    if (options.attempt > maxAttempts) {
+      throw new Error(`Failed connecting to redis (${type})`);
+    }
+
+    return wait;
+  };
+};
+
 const config: Config = {
   appKey: process.env.APP_KEY,
   baseDir,
@@ -76,10 +89,12 @@ const config: Config = {
     app: {
       host: process.env.REDIS_HOST,
       port: +(process.env.REDIS_PORT || 6379),
+      retry_strategy: redisRetry('app'),
     },
     notification: {
       host: process.env.NOTIFICATION_REDIS_HOST,
       port: +(process.env.NOTIFICATION_REDIS_PORT || 6379),
+      retry_strategy: redisRetry('notification'),
     },
   },
   server: {
