@@ -37,3 +37,56 @@ Run `yarn lint --fix` and additionally do manual fixes if needed.
 ### Testing
 
 To be added.
+
+## Docker
+
+To build:
+
+    # repository should be username/repository when using docker hub for convenient push
+    docker build --tag <repository>:<tag> .
+
+To run, the following items need to be passed to the container:
+- environment variables: either directly using docker command or bind mount to `/app/.env`
+- oauth public key: bind mount to `/app/oauth-public.key`
+- listening port: for the host
+
+Make sure the files are globally readable as the container process runs as limited privilege user
+
+Example:
+
+    docker run \
+      --rm \
+      --publish 2345:2345 \
+      -v /path/to/.env:/app/.env \
+      -v /path/to/oauth-public.key:/app/oauth-public.key \
+      -e NOTIFICATION_REDIS_HOST=redis \
+      ppy/osu-notification-server:latest
+
+## Deployment considerations
+
+### Multiple cores
+
+The process is single-threaded. Launch multiple containers to handle more connections.
+
+### Connection limit
+
+Each process is known to be able to handle over 3000 connections. Make sure to increase file descriptor limit for the container process (`--ulimit nofile=10000` option in docker) otherwise it won't be able to accept enough connections.
+
+### Process monitoring
+
+There's currently no error handling. Any errors will stop the process. Make sure to always restart on exit.
+
+### Reverse proxy
+
+The server is supposed to be deployed behind a reverse proxy like nginx. Following is the proxying setting usually used for nginx:
+
+    proxy_pass http://notification-server;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_buffering off;
+    proxy_redirect off;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    tcp_nodelay on;
+
+Especially make sure to not forward `X-Forwarded-For` from external source because it's used for identifying connecting IP address.
