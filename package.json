@@ -21,7 +21,7 @@
     "hot-shots": "^6.2.0",
     "jsonwebtoken": "^8.4.0",
     "mysql2": "^1.6.4",
-    "php-serialize": "^2.1.0",
+    "php-serialize": "^4.0.2",
     "redis": "^2.8.0",
     "source-map-support": "^0.5.10",
     "tslint": "^5.12.1",

@@ -438,10 +438,10 @@ path-parse@^1.0.6:
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz#d62dbb5679405d72c4737ec58600e9ddcf06d24c"
   integrity sha512-GSmOT2EbHrINBf9SR7CDELwlJ8AENk3Qn7OikK4nFYAu3Ote2+JYNVvkpAEQm3/TLNEJFD/xZJjzyxg3KBWOzw==
 
-php-serialize@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/php-serialize/-/php-serialize-2.1.0.tgz#94d91a61bec8651669de8f1cabe87c5d311e1cda"
-  integrity sha512-AiLKyaYRrwC3wsZImmaYmJotjlVMpG8UHjDXDeHOaQua0q36pCdOmuFu2H5i6jqmtBC8JBBpo8VSLwyt8F+vWg==
+php-serialize@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/php-serialize/-/php-serialize-4.0.2.tgz#869bd4e01c2d26ac41c1d3e8058ab00ec072e3e5"
+  integrity sha512-73K9MqCnRn07sXxOht6kVLg+fg1lf/VYpecKy4n9ABcw1PJIAWfaxuQKML27EjolGHWxlXTy3rfh59AGrcUvIA==
 
 pseudomap@^1.0.2:
   version "1.0.2"
