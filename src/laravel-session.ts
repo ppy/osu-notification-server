@@ -53,6 +53,8 @@ const isEncryptedSession = (arg: any): arg is EncryptedSession => {
     typeof arg.mac === 'string';
 };
 
+const sessionCookieName = 'osu_session';
+
 const getCookie = (req: http.IncomingMessage, key: string) => {
   if (req.headers.cookie != null) {
     return cookie.parse(req.headers.cookie)[key];
@@ -63,15 +65,18 @@ export default class LaravelSession {
   private key: Buffer;
   private redis: redis.RedisClient;
   private redisGet: any;
+  private sessionCookieNameHmac: Buffer;
 
   constructor(params: Params) {
     this.redis = redis.createClient(params.redisConfig);
     this.redisGet = promisify(this.redis.get).bind(this.redis);
     this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
+    // https://github.com/laravel/framework/blob/208c3976f186dcdfa0a434f4092bae7d32928465/src/Illuminate/Cookie/CookieValuePrefix.php
+    this.sessionCookieNameHmac = crypto.createHmac('sha1', this.key).update(`${sessionCookieName}v2`).digest();
   }
 
   async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session | null> {
-    const key = this.keyFromSession(getCookie(req, 'osu_session'));
+    const key = this.keyFromSession(getCookie(req, sessionCookieName));
 
     if (key == null) {
       return null;
@@ -113,7 +118,24 @@ export default class LaravelSession {
 
     this.verifyHmac(encryptedSession);
 
-    return `osu-next:${this.decrypt(encryptedSession)}`;
+    const keyWithCookieNameHmac = this.decrypt(encryptedSession);
+    let key: string;
+
+    // 40 = this.sessionCookieNameHmac.length
+    if (/^[0-9a-f]{40}\|/.test(keyWithCookieNameHmac)) {
+      const nameHmac = Buffer.from(keyWithCookieNameHmac.slice(0, 40), 'hex');
+
+      if (!crypto.timingSafeEqual(this.sessionCookieNameHmac, nameHmac)) {
+        throw new Error('Cookie name in session data failed HMAC verification');
+      }
+
+      // 41 = hmac + '|'
+      key = keyWithCookieNameHmac.slice(41);
+    } else {
+      key = keyWithCookieNameHmac;
+    }
+
+    return `osu-next:${key}`;
   }
 
   async verifyRequest(req: http.IncomingMessage) {
