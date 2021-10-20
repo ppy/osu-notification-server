@@ -149,14 +149,13 @@ export default class LaravelSession {
       return null;
     }
 
-    let csrf;
     const params = url.parse(req.url, true).query;
 
     if (typeof params.csrf !== 'string' || params.csrf === '') {
       throw new Error('missing csrf token');
     }
 
-    csrf = Buffer.from(params.csrf);
+    const csrf = Buffer.from(params.csrf);
 
     let hasValidToken;
 
