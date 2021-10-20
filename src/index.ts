@@ -16,8 +16,8 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { StatsD } from 'hot-shots';
 import * as http from 'http';
+import { StatsD } from 'hot-shots';
 import * as mysql from 'mysql2/promise';
 import 'source-map-support/register';
 import * as WebSocket from 'ws';

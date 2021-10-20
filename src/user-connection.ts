@@ -35,9 +35,9 @@ export default class UserConnection {
     return this.active;
   }
 
-  private active: boolean = false;
+  private active = false;
   private heartbeatInterval?: NodeJS.Timeout;
-  private lastHeartbeat: boolean = false;
+  private lastHeartbeat = false;
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
@@ -56,7 +56,7 @@ export default class UserConnection {
     this.ws.on('pong', this.heartbeatOnline);
     this.heartbeatInterval = setInterval(this.heartbeat, 20000);
     logger.debug(`user ${this.session.userId} (${this.session.ip}) connected`);
-  }
+  };
 
   close = () => {
     if (this.active) {
@@ -70,7 +70,7 @@ export default class UserConnection {
     if (this.heartbeatInterval != null) {
       clearInterval(this.heartbeatInterval);
     }
-  }
+  };
 
   event = (channel: string, messageString: string, message: any) => {
     switch (channel) {
@@ -88,7 +88,7 @@ export default class UserConnection {
 
         this.ws.send(messageString, noop);
     }
-  }
+  };
 
   heartbeat = () => {
     if (!this.lastHeartbeat || !this.active) {
@@ -99,11 +99,11 @@ export default class UserConnection {
 
     this.lastHeartbeat = false;
     this.ws.ping(noop);
-  }
+  };
 
   heartbeatOnline = () => {
     this.lastHeartbeat = true;
-  }
+  };
 
   sessionCheck = (message: any) => {
     switch (message.event) {
@@ -126,11 +126,11 @@ export default class UserConnection {
           this.ws.send(JSON.stringify({ event: 'verified' }), noop);
         }
     }
-  }
+  };
 
   subscribe = async () => {
     this.redisSubscriber.subscribe(await this.subscriptions(), this);
-  }
+  };
 
   subscriptions = async () => {
     const ret = [];
@@ -140,9 +140,7 @@ export default class UserConnection {
     ret.push(`private:user:${this.session.userId}`);
 
     return ret;
-  }
+  };
 
-  userSessionChannel = () => {
-    return `user_session:${this.session.userId}`;
-  }
+  userSessionChannel = () => `user_session:${this.session.userId}`;
 }

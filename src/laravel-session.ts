@@ -16,13 +16,13 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as cookie from 'cookie';
 import * as crypto from 'crypto';
 import * as http from 'http';
-import { unserialize } from 'php-serialize';
-import * as redis from 'redis';
 import * as url from 'url';
 import { promisify } from 'util';
+import * as cookie from 'cookie';
+import { unserialize } from 'php-serialize';
+import * as redis from 'redis';
 
 interface Params {
   appKey: string;
@@ -98,7 +98,7 @@ export default class LaravelSession {
     };
   }
 
-  keyFromSession(session: string = '') {
+  keyFromSession(session = '') {
     if (session == null || session === '') {
       return;
     }

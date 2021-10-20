@@ -18,9 +18,9 @@
 
 import * as fs from 'fs';
 import * as http from 'http';
+import * as url from 'url';
 import * as jwt from 'jsonwebtoken';
 import * as mysql from 'mysql2/promise';
-import * as url from 'url';
 
 interface Params {
   baseDir: string;
@@ -36,9 +36,7 @@ interface OAuthJWT {
   sub: string;
 }
 
-const isOAuthJWT = (arg: object|string): arg is OAuthJWT => {
-  return typeof arg === 'object';
-};
+const isOAuthJWT = (arg: object|string): arg is OAuthJWT => typeof arg === 'object';
 
 export default class OAuthVerifier {
   db: mysql.Pool;
@@ -65,7 +63,7 @@ export default class OAuthVerifier {
         token = params.access_token;
       }
     } else {
-      const matches = authorization.match(/^Bearer (.+)$/);
+      const matches = /^Bearer (.+)$/.exec(authorization);
 
       if (matches != null) {
         token = matches[1];
@@ -81,7 +79,7 @@ export default class OAuthVerifier {
     if (isOAuthJWT(parsedToken)) {
       return parsedToken.jti;
     }
-  }
+  };
 
   verifyRequest = async (req: http.IncomingMessage) => {
     const oAuthToken = this.getToken(req);
@@ -117,5 +115,5 @@ export default class OAuthVerifier {
     }
 
     throw new Error('token doesn\'t have the required scope');
-  }
+  };
 }

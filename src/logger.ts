@@ -25,16 +25,12 @@ function log(level: string, ...args: any) {
 
 let debug;
 if (config.debug) {
-  debug = (...args: any) => {
-    return log('debug', ...args);
-  };
+  debug = (...args: any) => log('debug', ...args);
 } else {
   debug = noop;
 }
 
-const info = (...args: any) => {
-  return log('info', ...args);
-};
+const info = (...args: any) => log('info', ...args);
 
 const logger = {debug, info};
 

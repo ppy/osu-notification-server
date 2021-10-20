@@ -16,9 +16,9 @@
  *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { PoolOptions as DbConfig } from 'mysql2';
-import * as path from 'path';
 import { ClientOpts as RedisConfig, RetryStrategyOptions as RedisRetryStrategyOptions } from 'redis';
 import { ServerOptions as ServerConfig } from 'ws';
 
@@ -57,17 +57,15 @@ if (typeof process.env.APP_KEY !== 'string') {
   throw new Error('APP_KEY environment variable is not set.');
 }
 
-const redisRetry = (type: string) => {
-  return (options: RedisRetryStrategyOptions) => {
-    const wait = 1000; // in milliseconds
-    const maxAttempts = 60;
+const redisRetry = (type: string) => (options: RedisRetryStrategyOptions) => {
+  const wait = 1000; // in milliseconds
+  const maxAttempts = 60;
 
-    if (options.attempt > maxAttempts) {
-      throw new Error(`Failed connecting to redis (${type})`);
-    }
+  if (options.attempt > maxAttempts) {
+    throw new Error(`Failed connecting to redis (${type})`);
+  }
 
-    return wait;
-  };
+  return wait;
 };
 
 const config: Config = {
