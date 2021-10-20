@@ -36,7 +36,7 @@ interface OAuthJWT {
   sub: string;
 }
 
-const isOAuthJWT = (arg: object|string): arg is OAuthJWT => typeof arg === 'object';
+const isOAuthJWT = (arg: unknown): arg is OAuthJWT => typeof arg === 'object';
 
 export default class OAuthVerifier {
   db: mysql.Pool;
