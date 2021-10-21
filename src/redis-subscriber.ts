@@ -19,6 +19,7 @@
 import { StatsD } from 'hot-shots';
 import * as redis from 'redis';
 import logger from './logger';
+import Message from './types/message';
 import UserConnection from './user-connection';
 
 interface Params {
@@ -50,10 +51,11 @@ export default class RedisSubscriber {
       return;
     }
 
-    let message: any;
+    let message: Message;
 
     try {
-      message = JSON.parse(messageString);
+      // assume typing is correct if it parses, for now.
+      message = JSON.parse(messageString) as Message;
     } catch {
       // do nothing
     }

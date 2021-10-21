@@ -21,6 +21,7 @@ import * as WebSocket from 'ws';
 import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
+import Message from './types/message';
 import UserSession from './types/user-session';
 
 interface Params {
@@ -72,7 +73,7 @@ export default class UserConnection {
     }
   };
 
-  event = (channel: string, messageString: string, message: any) => {
+  event = (channel: string, messageString: string, message: Message) => {
     switch (channel) {
       case this.userSessionChannel():
         return this.sessionCheck(message);
@@ -105,7 +106,7 @@ export default class UserConnection {
     this.lastHeartbeat = true;
   };
 
-  sessionCheck = (message: any) => {
+  sessionCheck = (message: Message) => {
     switch (message.event) {
       case 'logout':
         for (const key of message.data.keys) {
