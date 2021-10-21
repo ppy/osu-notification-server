@@ -130,11 +130,11 @@ export default class UserConnection {
     }
   };
 
-  subscribe = async () => {
-    this.redisSubscriber.subscribe(await this.subscriptions(), this);
+  subscribe = () => {
+    this.redisSubscriber.subscribe(this.subscriptions(), this);
   };
 
-  subscriptions = async () => {
+  subscriptions = () => {
     const ret = [];
 
     ret.push(`notification_read:${this.session.userId}`);
