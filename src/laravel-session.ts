@@ -163,7 +163,8 @@ export default class LaravelSession {
     try {
       hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
     } catch (err) {
-      throw new Error(`failed checking csrf token: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : 'unknown';
+      throw new Error(`failed checking csrf token: ${errorMessage}`);
     }
 
     if (hasValidToken) {
