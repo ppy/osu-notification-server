@@ -19,7 +19,7 @@
 import { StatsD } from 'hot-shots';
 import * as redis from 'redis';
 import logger from './logger';
-import Message from './types/message';
+import { Message } from './types/message';
 import UserConnection from './user-connection';
 
 interface Params {
