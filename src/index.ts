@@ -80,20 +80,15 @@ const laravelSession = new LaravelSession({ appKey: config.appKey, redisConfig: 
 const wss = new WebSocket.Server(config.server);
 logger.info(`listening on ${config.server.host}:${config.server.port}`);
 
-wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
+wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
   ws.on('error', (error) => logger.info('websocket error:', error));
 
-  let session;
+  getUserSession(req).then((session) => {
+    const connection = new UserConnection({ db, redisSubscriber, session, ws });
 
-  try {
-    session = await getUserSession(req);
-  } catch (err) {
+    connection.boot();
+  }).catch(() => {
     ws.send(authenticationFailedMessage, noop);
     ws.terminate();
-    return;
-  }
-
-  const connection = new UserConnection({ db, redisSubscriber, session, ws });
-
-  connection.boot();
+  });
 });
