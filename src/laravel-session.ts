@@ -43,15 +43,16 @@ interface Session {
   verified: boolean;
 }
 
-const isEncryptedSession = (arg: any): arg is EncryptedSession => {
-  if (typeof arg !== 'object') {
-    return false;
-  }
+function maybeEncryptedSession(arg: unknown): arg is Partial<EncryptedSession> {
+  return typeof arg === 'object' && arg !== null;
+}
 
-  return typeof arg.iv === 'string' &&
+function isEncryptedSession(arg: unknown): arg is EncryptedSession {
+  return maybeEncryptedSession(arg) &&
+    typeof arg.iv === 'string' &&
     typeof arg.value === 'string' &&
     typeof arg.mac === 'string';
-};
+}
 
 const sessionCookieName = 'osu_session';
 
@@ -103,7 +104,7 @@ export default class LaravelSession {
       return;
     }
 
-    let encryptedSession;
+    let encryptedSession: unknown;
     try {
       encryptedSession = JSON.parse(
         Buffer.from(session, 'base64').toString(),
