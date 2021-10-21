@@ -134,15 +134,11 @@ export default class UserConnection {
     this.redisSubscriber.subscribe(this.subscriptions(), this);
   };
 
-  subscriptions = () => {
-    const ret = [];
-
-    ret.push(`notification_read:${this.session.userId}`);
-    ret.push(this.userSessionChannel());
-    ret.push(`private:user:${this.session.userId}`);
-
-    return ret;
-  };
+  subscriptions = () => [
+    `notification_read:${this.session.userId}`,
+    this.userSessionChannel(),
+    `private:user:${this.session.userId}`,
+  ];
 
   userSessionChannel = () => `user_session:${this.session.userId}`;
 }
