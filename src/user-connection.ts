@@ -126,6 +126,7 @@ export default class UserConnection {
           this.session.verified = true;
           this.ws.send(JSON.stringify({ event: 'verified' }), noop);
         }
+        break;
     }
   };
 
