@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "lint": "eslint --cache 'src/**/*.{js,ts}' '*.js'",
     "serve": "node build/index.js",
     "watch": "yarn run build --watch"
   },
@@ -24,8 +24,15 @@
     "php-serialize": "^4.0.2",
     "redis": "^2.8.0",
     "source-map-support": "^0.5.10",
-    "tslint": "^5.12.1",
     "typescript": "^4.4.2",
     "ws": "^6.1.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "eslint": "^7.15.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^30.7.8",
+    "eslint-plugin-typescript-sort-keys": "^1.7.0"
   }
 }

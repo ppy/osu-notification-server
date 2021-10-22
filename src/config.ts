@@ -1,24 +1,24 @@
 /**
- *    Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
+ * Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
  *
- *    This file is part of osu!web. osu!web is distributed with the hope of
- *    attracting more community contributions to the core ecosystem of osu!.
+ * This file is part of osu!web. osu!web is distributed with the hope of
+ * attracting more community contributions to the core ecosystem of osu!.
  *
- *    osu!web is free software: you can redistribute it and/or modify
- *    it under the terms of the Affero GNU General Public License version 3
- *    as published by the Free Software Foundation.
+ * osu!web is free software: you can redistribute it and/or modify
+ * it under the terms of the Affero GNU General Public License version 3
+ * as published by the Free Software Foundation.
  *
- *    osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
- *    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *    See the GNU Affero General Public License for more details.
+ * osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero General Public License for more details.
  *
- *    You should have received a copy of the GNU Affero General Public License
- *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { PoolOptions as DbConfig } from 'mysql2';
-import * as path from 'path';
 import { ClientOpts as RedisConfig, RetryStrategyOptions as RedisRetryStrategyOptions } from 'redis';
 import { ServerOptions as ServerConfig } from 'ws';
 
@@ -57,17 +57,15 @@ if (typeof process.env.APP_KEY !== 'string') {
   throw new Error('APP_KEY environment variable is not set.');
 }
 
-const redisRetry = (type: string) => {
-  return (options: RedisRetryStrategyOptions) => {
-    const wait = 1000; // in milliseconds
-    const maxAttempts = 60;
+const redisRetry = (type: string) => (options: RedisRetryStrategyOptions) => {
+  const wait = 1000; // in milliseconds
+  const maxAttempts = 60;
 
-    if (options.attempt > maxAttempts) {
-      throw new Error(`Failed connecting to redis (${type})`);
-    }
+  if (options.attempt > maxAttempts) {
+    throw new Error(`Failed connecting to redis (${type})`);
+  }
 
-    return wait;
-  };
+  return wait;
 };
 
 const config: Config = {

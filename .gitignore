@@ -1,5 +1,6 @@
 # should be in sync with .dockerignore
 /.env
+/.eslintcache
 /build
 /node_modules
 /oauth-public.key

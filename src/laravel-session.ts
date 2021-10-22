@@ -1,28 +1,28 @@
 /**
- *    Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
+ * Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
  *
- *    This file is part of osu!web. osu!web is distributed with the hope of
- *    attracting more community contributions to the core ecosystem of osu!.
+ * This file is part of osu!web. osu!web is distributed with the hope of
+ * attracting more community contributions to the core ecosystem of osu!.
  *
- *    osu!web is free software: you can redistribute it and/or modify
- *    it under the terms of the Affero GNU General Public License version 3
- *    as published by the Free Software Foundation.
+ * osu!web is free software: you can redistribute it and/or modify
+ * it under the terms of the Affero GNU General Public License version 3
+ * as published by the Free Software Foundation.
  *
- *    osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
- *    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *    See the GNU Affero General Public License for more details.
+ * osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero General Public License for more details.
  *
- *    You should have received a copy of the GNU Affero General Public License
- *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as cookie from 'cookie';
 import * as crypto from 'crypto';
 import * as http from 'http';
-import { unserialize } from 'php-serialize';
-import * as redis from 'redis';
 import * as url from 'url';
 import { promisify } from 'util';
+import * as cookie from 'cookie';
+import { unserialize } from 'php-serialize';
+import * as redis from 'redis';
 
 interface Params {
   appKey: string;
@@ -43,15 +43,16 @@ interface Session {
   verified: boolean;
 }
 
-const isEncryptedSession = (arg: any): arg is EncryptedSession => {
-  if (typeof arg !== 'object') {
-    return false;
-  }
+function maybeEncryptedSession(arg: unknown): arg is Partial<EncryptedSession> {
+  return typeof arg === 'object' && arg !== null;
+}
 
-  return typeof arg.iv === 'string' &&
+function isEncryptedSession(arg: unknown): arg is EncryptedSession {
+  return maybeEncryptedSession(arg) &&
+    typeof arg.iv === 'string' &&
     typeof arg.value === 'string' &&
     typeof arg.mac === 'string';
-};
+}
 
 const sessionCookieName = 'osu_session';
 
@@ -98,12 +99,12 @@ export default class LaravelSession {
     };
   }
 
-  keyFromSession(session: string = '') {
+  keyFromSession(session = '') {
     if (session == null || session === '') {
       return;
     }
 
-    let encryptedSession;
+    let encryptedSession: unknown;
     try {
       encryptedSession = JSON.parse(
         Buffer.from(session, 'base64').toString(),
@@ -149,21 +150,21 @@ export default class LaravelSession {
       return null;
     }
 
-    let csrf;
     const params = url.parse(req.url, true).query;
 
     if (typeof params.csrf !== 'string' || params.csrf === '') {
       throw new Error('missing csrf token');
     }
 
-    csrf = Buffer.from(params.csrf);
+    const csrf = Buffer.from(params.csrf);
 
     let hasValidToken;
 
     try {
       hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
     } catch (err) {
-      throw new Error(`failed checking csrf token: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : 'unknown';
+      throw new Error(`failed checking csrf token: ${errorMessage}`);
     }
 
     if (hasValidToken) {

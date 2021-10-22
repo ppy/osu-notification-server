@@ -1,26 +1,26 @@
 /**
- *    Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
+ * Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
  *
- *    This file is part of osu!web. osu!web is distributed with the hope of
- *    attracting more community contributions to the core ecosystem of osu!.
+ * This file is part of osu!web. osu!web is distributed with the hope of
+ * attracting more community contributions to the core ecosystem of osu!.
  *
- *    osu!web is free software: you can redistribute it and/or modify
- *    it under the terms of the Affero GNU General Public License version 3
- *    as published by the Free Software Foundation.
+ * osu!web is free software: you can redistribute it and/or modify
+ * it under the terms of the Affero GNU General Public License version 3
+ * as published by the Free Software Foundation.
  *
- *    osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
- *    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *    See the GNU Affero General Public License for more details.
+ * osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero General Public License for more details.
  *
- *    You should have received a copy of the GNU Affero General Public License
- *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 import * as fs from 'fs';
 import * as http from 'http';
+import * as url from 'url';
 import * as jwt from 'jsonwebtoken';
 import * as mysql from 'mysql2/promise';
-import * as url from 'url';
 
 interface Params {
   baseDir: string;
@@ -36,9 +36,7 @@ interface OAuthJWT {
   sub: string;
 }
 
-const isOAuthJWT = (arg: object|string): arg is OAuthJWT => {
-  return typeof arg === 'object';
-};
+const isOAuthJWT = (arg: unknown): arg is OAuthJWT => typeof arg === 'object';
 
 export default class OAuthVerifier {
   db: mysql.Pool;
@@ -65,7 +63,7 @@ export default class OAuthVerifier {
         token = params.access_token;
       }
     } else {
-      const matches = authorization.match(/^Bearer (.+)$/);
+      const matches = /^Bearer (.+)$/.exec(authorization);
 
       if (matches != null) {
         token = matches[1];
@@ -81,7 +79,7 @@ export default class OAuthVerifier {
     if (isOAuthJWT(parsedToken)) {
       return parsedToken.jti;
     }
-  }
+  };
 
   verifyRequest = async (req: http.IncomingMessage) => {
     const oAuthToken = this.getToken(req);
@@ -117,5 +115,5 @@ export default class OAuthVerifier {
     }
 
     throw new Error('token doesn\'t have the required scope');
-  }
+  };
 }

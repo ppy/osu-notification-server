@@ -1,23 +1,23 @@
 /**
- *    Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
+ * Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
  *
- *    This file is part of osu!web. osu!web is distributed with the hope of
- *    attracting more community contributions to the core ecosystem of osu!.
+ * This file is part of osu!web. osu!web is distributed with the hope of
+ * attracting more community contributions to the core ecosystem of osu!.
  *
- *    osu!web is free software: you can redistribute it and/or modify
- *    it under the terms of the Affero GNU General Public License version 3
- *    as published by the Free Software Foundation.
+ * osu!web is free software: you can redistribute it and/or modify
+ * it under the terms of the Affero GNU General Public License version 3
+ * as published by the Free Software Foundation.
  *
- *    osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
- *    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *    See the GNU Affero General Public License for more details.
+ * osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero General Public License for more details.
  *
- *    You should have received a copy of the GNU Affero General Public License
- *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { StatsD } from 'hot-shots';
 import * as http from 'http';
+import { StatsD } from 'hot-shots';
 import * as mysql from 'mysql2/promise';
 import 'source-map-support/register';
 import * as WebSocket from 'ws';
@@ -80,20 +80,15 @@ const laravelSession = new LaravelSession({ appKey: config.appKey, redisConfig: 
 const wss = new WebSocket.Server(config.server);
 logger.info(`listening on ${config.server.host}:${config.server.port}`);
 
-wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
+wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
   ws.on('error', (error) => logger.info('websocket error:', error));
 
-  let session;
+  getUserSession(req).then((session) => {
+    const connection = new UserConnection({ db, redisSubscriber, session, ws });
 
-  try {
-    session = await getUserSession(req);
-  } catch (err) {
+    connection.boot();
+  }).catch(() => {
     ws.send(authenticationFailedMessage, noop);
     ws.terminate();
-    return;
-  }
-
-  const connection = new UserConnection({ db, redisSubscriber, session, ws });
-
-  connection.boot();
+  });
 });

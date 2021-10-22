@@ -1,19 +1,19 @@
 /**
- *    Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
+ * Copyright (c) ppy Pty Ltd <contact@ppy.sh>.
  *
- *    This file is part of osu!web. osu!web is distributed with the hope of
- *    attracting more community contributions to the core ecosystem of osu!.
+ * This file is part of osu!web. osu!web is distributed with the hope of
+ * attracting more community contributions to the core ecosystem of osu!.
  *
- *    osu!web is free software: you can redistribute it and/or modify
- *    it under the terms of the Affero GNU General Public License version 3
- *    as published by the Free Software Foundation.
+ * osu!web is free software: you can redistribute it and/or modify
+ * it under the terms of the Affero GNU General Public License version 3
+ * as published by the Free Software Foundation.
  *
- *    osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
- *    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *    See the GNU Affero General Public License for more details.
+ * osu!web is distributed WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero General Public License for more details.
  *
- *    You should have received a copy of the GNU Affero General Public License
- *    along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 import * as mysql from 'mysql2/promise';
@@ -21,6 +21,7 @@ import * as WebSocket from 'ws';
 import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
+import Message from './types/message';
 import UserSession from './types/user-session';
 
 interface Params {
@@ -35,9 +36,9 @@ export default class UserConnection {
     return this.active;
   }
 
-  private active: boolean = false;
+  private active = false;
   private heartbeatInterval?: NodeJS.Timeout;
-  private lastHeartbeat: boolean = false;
+  private lastHeartbeat = false;
   private redisSubscriber: RedisSubscriber;
   private session: UserSession;
   private ws: WebSocket;
@@ -56,7 +57,7 @@ export default class UserConnection {
     this.ws.on('pong', this.heartbeatOnline);
     this.heartbeatInterval = setInterval(this.heartbeat, 20000);
     logger.debug(`user ${this.session.userId} (${this.session.ip}) connected`);
-  }
+  };
 
   close = () => {
     if (this.active) {
@@ -70,9 +71,9 @@ export default class UserConnection {
     if (this.heartbeatInterval != null) {
       clearInterval(this.heartbeatInterval);
     }
-  }
+  };
 
-  event = (channel: string, messageString: string, message: any) => {
+  event = (channel: string, messageString: string, message: Message) => {
     switch (channel) {
       case this.userSessionChannel():
         return this.sessionCheck(message);
@@ -88,7 +89,7 @@ export default class UserConnection {
 
         this.ws.send(messageString, noop);
     }
-  }
+  };
 
   heartbeat = () => {
     if (!this.lastHeartbeat || !this.active) {
@@ -99,13 +100,13 @@ export default class UserConnection {
 
     this.lastHeartbeat = false;
     this.ws.ping(noop);
-  }
+  };
 
   heartbeatOnline = () => {
     this.lastHeartbeat = true;
-  }
+  };
 
-  sessionCheck = (message: any) => {
+  sessionCheck = (message: Message) => {
     switch (message.event) {
       case 'logout':
         for (const key of message.data.keys) {
@@ -125,24 +126,19 @@ export default class UserConnection {
           this.session.verified = true;
           this.ws.send(JSON.stringify({ event: 'verified' }), noop);
         }
+        break;
     }
-  }
+  };
 
-  subscribe = async () => {
-    this.redisSubscriber.subscribe(await this.subscriptions(), this);
-  }
+  subscribe = () => {
+    this.redisSubscriber.subscribe(this.subscriptions(), this);
+  };
 
-  subscriptions = async () => {
-    const ret = [];
+  subscriptions = () => [
+    `notification_read:${this.session.userId}`,
+    this.userSessionChannel(),
+    `private:user:${this.session.userId}`,
+  ];
 
-    ret.push(`notification_read:${this.session.userId}`);
-    ret.push(this.userSessionChannel());
-    ret.push(`private:user:${this.session.userId}`);
-
-    return ret;
-  }
-
-  userSessionChannel = () => {
-    return `user_session:${this.session.userId}`;
-  }
+  userSessionChannel = () => `user_session:${this.session.userId}`;
 }

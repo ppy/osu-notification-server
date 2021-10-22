@@ -16,6 +16,25 @@
  * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export default function noop() {
-  // do nothing
+type Message = LogoutMessage | VerificationRequirementChangeMessage | VerifiedMessage;
+export default Message;
+
+interface MessageBase {
+  data: Record<string, unknown>;
+  event: string;
+}
+
+interface LogoutMessage extends MessageBase {
+  data: { keys: string[] };
+  event: 'logout';
+}
+
+interface VerificationRequirementChangeMessage extends MessageBase  {
+  data: { requires_verification: boolean };
+  event: 'verification_requirement_change';
+}
+
+interface VerifiedMessage extends MessageBase {
+  data: { key: string };
+  event: 'verified';
 }
