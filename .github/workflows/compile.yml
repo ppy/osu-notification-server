@@ -8,26 +8,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - name: Cache yarn
-        uses: actions/cache@v2
-        id: yarn-cache
+      - name: Setup node.js
+        uses: actions/setup-node@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          cache: 'yarn'
+          node-version: '12'
 
       - name: Install js dependencies
         run: yarn --frozen-lockfile
