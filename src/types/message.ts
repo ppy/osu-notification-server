@@ -16,7 +16,8 @@
  * along with osu!web.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export type Message = LogoutMessage | VerificationRequirementChangeMessage | VerifiedMessage;
+type Message = LogoutMessage | VerificationRequirementChangeMessage | VerifiedMessage;
+export default Message;
 
 interface MessageBase {
   data: Record<string, unknown>;

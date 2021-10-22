@@ -21,7 +21,7 @@ import * as WebSocket from 'ws';
 import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
-import { Message } from './types/message';
+import Message from './types/message';
 import UserSession from './types/user-session';
 
 interface Params {
