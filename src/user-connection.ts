@@ -7,7 +7,7 @@ import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
 import Message from './types/message';
-import { isSocketMessage } from './types/socket-message';
+import { parseSocketMessage } from './types/socket-message';
 import UserSession from './types/user-session';
 
 interface Params {
@@ -85,21 +85,13 @@ export default class UserConnection {
   };
 
   handleMessage = (data: WebSocket.Data) => {
-    if (typeof data !== 'string') return;
+    const messsage = parseSocketMessage(data);
+    if (messsage == null) return;
 
-    try {
-      const json = JSON.parse(data) as unknown;
-      if (json == null) return;
-
-      if (isSocketMessage(json)) {
-        if (json.event === 'chat.start') {
-          this.chatActive = true;
-        } else if (json.event === 'chat.end') {
-          this.chatActive = false;
-        }
-      }
-    } catch (error) {
-      logger.debug(error);
+    if (messsage.event === 'chat.start') {
+      this.chatActive = true;
+    } else if (messsage.event === 'chat.end') {
+      this.chatActive = false;
     }
   };
 
