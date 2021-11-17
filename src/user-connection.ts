@@ -22,6 +22,7 @@ export default class UserConnection {
   }
 
   private active = false;
+  private chatActive = false;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat = false;
   private redisSubscriber: RedisSubscriber;
@@ -38,6 +39,7 @@ export default class UserConnection {
     this.active = true;
     this.lastHeartbeat = true;
     this.subscribe();
+    this.ws.on('message', this.handleMessage);
     this.ws.on('close', this.close);
     this.ws.on('pong', this.heartbeatOnline);
     this.heartbeatInterval = setInterval(this.heartbeat, 20000);
@@ -67,12 +69,34 @@ export default class UserConnection {
           return;
         }
 
-        logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data !== 'object') {
           return;
         }
 
+        if (message.event.startsWith('chat.') && !this.chatActive) {
+          return;
+        }
+
+        logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
+
         this.ws.send(messageString, noop);
+    }
+  };
+
+  handleMessage = (data: WebSocket.Data) => {
+    if (typeof data !== 'string') return;
+
+    try {
+      const json = JSON.parse(data);
+      if (json == null) return;
+
+      if (json.event === 'chat.start') {
+        this.chatActive = true;
+      } else if (json.event === 'chat.end') {
+        this.chatActive = false;
+      }
+    } catch (error) {
+      logger.debug(error);
     }
   };
 
