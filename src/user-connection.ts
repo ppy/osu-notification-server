@@ -7,6 +7,7 @@ import logger from './logger';
 import noop from './noop';
 import RedisSubscriber from './redis-subscriber';
 import Message from './types/message';
+import { parseSocketMessage } from './types/socket-message';
 import UserSession from './types/user-session';
 
 interface Params {
@@ -22,6 +23,7 @@ export default class UserConnection {
   }
 
   private active = false;
+  private chatActive = false;
   private heartbeatInterval?: NodeJS.Timeout;
   private lastHeartbeat = false;
   private redisSubscriber: RedisSubscriber;
@@ -38,6 +40,7 @@ export default class UserConnection {
     this.active = true;
     this.lastHeartbeat = true;
     this.subscribe();
+    this.ws.on('message', this.handleMessage);
     this.ws.on('close', this.close);
     this.ws.on('pong', this.heartbeatOnline);
     this.heartbeatInterval = setInterval(this.heartbeat, 20000);
@@ -67,12 +70,28 @@ export default class UserConnection {
           return;
         }
 
-        logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
         if (typeof message.data !== 'object') {
           return;
         }
 
+        if (message.event.startsWith('chat.') && !this.chatActive) {
+          return;
+        }
+
+        logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
+
         this.ws.send(messageString, noop);
+    }
+  };
+
+  handleMessage = (data: WebSocket.Data) => {
+    const messsage = parseSocketMessage(data);
+    if (messsage == null) return;
+
+    if (messsage.event === 'chat.start') {
+      this.chatActive = true;
+    } else if (messsage.event === 'chat.end') {
+      this.chatActive = false;
     }
   };
 

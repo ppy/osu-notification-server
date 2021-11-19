@@ -14,7 +14,7 @@ interface LogoutMessage extends MessageBase {
   event: 'logout';
 }
 
-interface VerificationRequirementChangeMessage extends MessageBase  {
+interface VerificationRequirementChangeMessage extends MessageBase {
   data: { requires_verification: boolean };
   event: 'verification_requirement_change';
 }
