@@ -41,7 +41,7 @@ export default class RedisSubscriber {
       const message = JSON.parse(messageString) as Message;
 
       connections.forEach((connection) => connection.event(channel, messageString, message));
-      this.dogstatsd.increment('sent', connections.size);
+      this.dogstatsd.increment('sent', connections.size, { event: message.event });
     } catch {
       // do nothing
       // TODO: log error?
