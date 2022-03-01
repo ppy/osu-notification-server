@@ -36,17 +36,16 @@ export default class RedisSubscriber {
       return;
     }
 
-    let message: Message;
-
     try {
       // assume typing is correct if it parses, for now.
-      message = JSON.parse(messageString) as Message;
+      const message = JSON.parse(messageString) as Message;
+
+      connections.forEach((connection) => connection.event(channel, messageString, message));
+      this.dogstatsd.increment('sent', connections.size, { event: message.event });
     } catch {
       // do nothing
+      // TODO: log error?
     }
-
-    connections.forEach((connection) => connection.event(channel, messageString, message));
-    this.dogstatsd.increment('sent', connections.size);
   };
 
   subscribe(channels: string | string[], connection: UserConnection) {
