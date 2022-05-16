@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { PoolOptions as DbConfig } from 'mysql2';
@@ -14,6 +15,7 @@ interface Config {
   dbName: DbNames;
   debug: boolean;
   env: string;
+  oauthPublicKey: Buffer;
   redis: RedisConfigs;
   server: ServerConfig;
 }
@@ -68,6 +70,9 @@ const config: Config = {
   },
   debug: process.env.APP_DEBUG === 'true',
   env,
+  oauthPublicKey: process.env.PASSPORT_PUBLIC_KEY == null
+    ? fs.readFileSync(`${baseDir}/oauth-public.key`)
+    : Buffer.from(process.env.PASSPORT_PUBLIC_KEY),
   redis: {
     app: {
       host: process.env.REDIS_HOST,

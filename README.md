@@ -6,8 +6,8 @@
 
 ## Setup
 
-Copy (or symlink) following files from osu!web project to this project's root directory:
-- `oauth-public.key` (located in `storage` in osu!web)
+Either set up environment variables or copy/symlink following files from osu!web project to this project's root directory:
+- `oauth-public.key` (if not using environment variable; located in `storage` in osu!web)
 - `.env`
 
 Configurations:
