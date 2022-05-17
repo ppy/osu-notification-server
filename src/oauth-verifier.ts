@@ -1,15 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import * as fs from 'fs';
 import * as http from 'http';
 import * as url from 'url';
 import * as jwt from 'jsonwebtoken';
 import * as mysql from 'mysql2/promise';
 
 interface Params {
-  baseDir: string;
   db: mysql.Pool;
+  publicKey: Buffer;
 }
 
 interface OAuthJWT {
@@ -29,7 +28,7 @@ export default class OAuthVerifier {
 
   constructor(params: Params) {
     this.db = params.db;
-    this.oAuthTokenSignatureKey = fs.readFileSync(`${params.baseDir}/oauth-public.key`);
+    this.oAuthTokenSignatureKey = params.publicKey;
   }
 
   getToken = (req: http.IncomingMessage) => {
