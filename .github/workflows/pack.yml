@@ -21,7 +21,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ${{ matrix.image }}
+            pppy/osu-notification-server
           # generate Docker tags based on the following events/attributes
           # on tag event: tag using git tag, and as latest if the tag doesn't contain hyphens (pre-releases)
           # on push event: tag using git sha, branch name and as latest-dev
