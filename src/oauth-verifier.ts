@@ -93,7 +93,7 @@ export default class OAuthVerifier {
           key: `oauth:${oAuthToken}`,
           requiresVerification: false,
           userId,
-          verified: false,
+          verified: true,
         };
       }
     }
