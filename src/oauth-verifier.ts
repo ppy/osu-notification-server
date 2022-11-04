@@ -88,7 +88,7 @@ export default class OAuthVerifier {
     const scopes = JSON.parse(rows[0].scopes);
 
     for (const scope of scopes) {
-      if (scope === '*' || scope === 'read') {
+      if (scope === '*') {
         return {
           key: `oauth:${oAuthToken}`,
           requiresVerification: false,
