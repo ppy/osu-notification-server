@@ -88,12 +88,12 @@ export default class OAuthVerifier {
     const scopes = JSON.parse(rows[0].scopes);
 
     for (const scope of scopes) {
-      if (scope === '*' || scope === 'read') {
+      if (scope === '*') {
         return {
           key: `oauth:${oAuthToken}`,
           requiresVerification: false,
           userId,
-          verified: false,
+          verified: true, // this should match osu-web AuthApi
         };
       }
     }
