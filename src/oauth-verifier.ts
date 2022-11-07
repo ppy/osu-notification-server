@@ -93,7 +93,7 @@ export default class OAuthVerifier {
           key: `oauth:${oAuthToken}`,
           requiresVerification: false,
           userId,
-          verified: true,
+          verified: true, // this should match osu-web AuthApi
         };
       }
     }
