@@ -70,7 +70,7 @@ const config: Config = {
   },
   debug: process.env.APP_DEBUG === 'true',
   env,
-  oauthPublicKey: process.env.PASSPORT_PUBLIC_KEY == null
+  oauthPublicKey: process.env.PASSPORT_PUBLIC_KEY == null || process.env.PASSPORT_PUBLIC_KEY === ''
     ? fs.readFileSync(`${baseDir}/oauth-public.key`)
     : Buffer.from(process.env.PASSPORT_PUBLIC_KEY),
   redis: {
