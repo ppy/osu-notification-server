@@ -156,6 +156,7 @@ export default class LaravelSession {
       return {
         key: session.key,
         requiresVerification: session.requiresVerification,
+        scopes: new Set(['*']),
         userId: session.userId,
         verified: session.verified,
       };
