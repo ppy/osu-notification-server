@@ -5,6 +5,7 @@ export default interface UserSession {
   ip?: string;
   key: string;
   requiresVerification: boolean;
+  scopes: Set<string>;
   userId: number;
   verified: boolean;
 }

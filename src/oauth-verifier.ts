@@ -85,13 +85,14 @@ export default class OAuthVerifier {
     }
 
     const userId = rows[0].user_id;
-    const scopes = JSON.parse(rows[0].scopes);
+    const scopes = JSON.parse(rows[0].scopes) as string[];
 
     for (const scope of scopes) {
-      if (scope === '*') {
+      if (scope === '*' || scope === 'chat.read') {
         return {
           key: `oauth:${oAuthToken}`,
           requiresVerification: false,
+          scopes: new Set(scopes),
           userId,
           verified: true, // this should match osu-web AuthApi
         };

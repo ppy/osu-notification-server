@@ -65,7 +65,7 @@ export default class UserConnection {
     switch (channel) {
       case this.userSessionChannel():
         return this.sessionCheck(message);
-      default:
+      default: {
         if (this.session.requiresVerification && !this.session.verified) {
           return;
         }
@@ -74,13 +74,22 @@ export default class UserConnection {
           return;
         }
 
-        if (message.event.startsWith('chat.') && !this.chatActive) {
-          return;
+        const isChat = message.event.startsWith('chat.');
+        if (isChat && !this.chatActive) return;
+
+        if (!this.session.scopes.has('*')) {
+          // written this way so it's clear which operation needs which scope
+          if (isChat && this.session.scopes.has('chat.read')) {
+            // ok
+          } else {
+            return; // no permission
+          }
         }
 
         logger.debug(`sending event ${message.event} to ${this.session.userId} (${this.session.ip})`);
 
         this.ws.send(messageString, noop);
+      }
     }
   };
 
