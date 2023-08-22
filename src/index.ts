@@ -38,8 +38,8 @@ const getUserSession = async (req: http.IncomingMessage) => {
     if (userSession == null) {
       userSession = await laravelSession.verifyRequest(req);
     }
-  } catch (err) {
-    failReason = err.message;
+  } catch (err: unknown) {
+    failReason = (err as Error).message;
   }
 
   if (userSession == null) {

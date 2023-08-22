@@ -4,20 +4,27 @@
 import * as crypto from 'crypto';
 import * as http from 'http';
 import * as url from 'url';
-import { promisify } from 'util';
 import * as cookie from 'cookie';
 import { unserialize } from 'php-serialize';
-import * as redis from 'redis';
+import { RedisClientOptions, createClient as redisCreateClient } from 'redis';
 
 interface Params {
   appKey: string;
-  redisConfig: redis.ClientOpts;
+  redisConfig: RedisClientOptions;
 }
 
 interface EncryptedSession {
   iv: string;
   mac: string;
   value: string;
+}
+
+interface LaravelSessionItem {
+  _token: string;
+  // login_<authName>_<hashedAuthClass>
+  login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d: number;
+  requires_verification: boolean;
+  verified: boolean;
 }
 
 interface Session {
@@ -49,13 +56,13 @@ const getCookie = (req: http.IncomingMessage, key: string) => {
 
 export default class LaravelSession {
   private key: Buffer;
-  private redis: redis.RedisClient;
-  private redisGet: any;
+  private redis;
   private sessionCookieNameHmac: Buffer;
 
   constructor(params: Params) {
-    this.redis = redis.createClient(params.redisConfig);
-    this.redisGet = promisify(this.redis.get).bind(this.redis);
+    this.redis = redisCreateClient(params.redisConfig);
+    this.redis.on('error', () => { /* dummy listener to apply reconnectStrategy */ });
+    void this.redis.connect();
     this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
     // https://github.com/laravel/framework/blob/208c3976f186dcdfa0a434f4092bae7d32928465/src/Illuminate/Cookie/CookieValuePrefix.php
     this.sessionCookieNameHmac = crypto.createHmac('sha1', this.key).update(`${sessionCookieName}v2`).digest();
@@ -68,11 +75,10 @@ export default class LaravelSession {
       return null;
     }
 
-    const serializedData = await this.redisGet(key);
+    const serializedData = await this.redis.get(key) as string;
 
-    const rawData = unserialize(unserialize(serializedData), {}, {strict: false});
+    const rawData = unserialize(unserialize(serializedData ?? '') as string, {}, { strict: false }) as LaravelSessionItem;
 
-    // login_<authName>_<hashedAuthClass>
     const userId = rawData.login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d;
 
     return {

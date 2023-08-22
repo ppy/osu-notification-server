@@ -2,51 +2,27 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import { StatsD } from 'hot-shots';
-import * as redis from 'redis';
+import { RedisClientOptions, createClient } from 'redis';
 import logger from './logger';
 import Message from './types/message';
 import UserConnection from './user-connection';
 
 interface Params {
   dogstatsd: StatsD;
-  redisConfig: redis.ClientOpts;
-}
-
-interface UserConnections {
-  [key: string]: Set<UserConnection>;
+  redisConfig: RedisClientOptions;
 }
 
 export default class RedisSubscriber {
   private dogstatsd: StatsD;
-  private redis: redis.RedisClient;
-  private userConnections: UserConnections = {};
+  private redis;
+  private userConnections: Partial<Record<string, Set<UserConnection>>> = {};
 
   constructor(params: Params) {
     this.dogstatsd = params.dogstatsd;
-    this.redis = redis.createClient(params.redisConfig);
-    this.redis.on('message', this.onMessage);
+    this.redis = createClient(params.redisConfig);
+    this.redis.on('error', () => { /* dummy listener to apply reconnectStrategy */ });
+    void this.redis.connect();
   }
-
-  onMessage = (channel: string, messageString: string) => {
-    logger.debug(`received message from channel ${channel}`);
-
-    const connections = this.userConnections[channel];
-
-    if (connections == null || connections.size === 0) {
-      return;
-    }
-
-    try {
-      // assume typing is correct if it parses, for now.
-      const message = JSON.parse(messageString) as Message;
-
-      connections.forEach((connection) => connection.event(channel, messageString, message));
-      this.dogstatsd.increment('sent', connections.size, { event: message.event });
-    } catch {
-      // do nothing
-      // TODO: log error?
-    }
-  };
 
   subscribe(channels: string | string[], connection: UserConnection) {
     if (!connection.isActive) {
@@ -60,19 +36,18 @@ export default class RedisSubscriber {
     const toSubscribe = [];
 
     for (const channel of channels) {
-      if (this.userConnections[channel] == null) {
-        this.userConnections[channel] = new Set();
-      }
-
-      if (this.userConnections[channel].size === 0) {
+      const set = this.userConnections[channel] ??= new Set();
+      if (set.size === 0) {
         toSubscribe.push(channel);
       }
 
-      this.userConnections[channel].add(connection);
+      set.add(connection);
     }
 
     if (toSubscribe.length > 0) {
-      this.redis.subscribe(...toSubscribe);
+      for (const channel of toSubscribe) {
+        void this.redis.subscribe(channel, this.onMessage);
+      }
     }
   }
 
@@ -101,7 +76,28 @@ export default class RedisSubscriber {
     }
 
     if (toUnsubscribe.length > 0) {
-      this.redis.unsubscribe(...toUnsubscribe);
+      void this.redis.unsubscribe(toUnsubscribe);
     }
   }
+
+  private readonly onMessage = (messageString: string, channel: string) => {
+    logger.debug(`received message from channel ${channel}`);
+
+    const connections = this.userConnections[channel];
+
+    if (connections == null || connections.size === 0) {
+      return;
+    }
+
+    try {
+      // assume typing is correct if it parses, for now.
+      const message = JSON.parse(messageString) as Message;
+
+      connections.forEach((connection) => connection.event(channel, messageString, message));
+      this.dogstatsd.increment('sent', connections.size, { event: message.event });
+    } catch {
+      // do nothing
+      // TODO: log error?
+    }
+  };
 }

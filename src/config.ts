@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { PoolOptions as DbConfig } from 'mysql2';
-import { ClientOpts as RedisConfig, RetryStrategyOptions as RedisRetryStrategyOptions } from 'redis';
+import { RedisClientOptions } from 'redis';
 import { ServerOptions as ServerConfig } from 'ws';
 
 interface Config {
@@ -25,8 +25,8 @@ interface DbNames {
 }
 
 interface RedisConfigs {
-  app: RedisConfig;
-  notification: RedisConfig;
+  app: RedisClientOptions;
+  notification: RedisClientOptions;
 }
 
 let baseDir = process.env.WEBSOCKET_BASEDIR;
@@ -43,17 +43,6 @@ dotenv.config({ path: `${baseDir}/.env` });
 if (typeof process.env.APP_KEY !== 'string') {
   throw new Error('APP_KEY environment variable is not set.');
 }
-
-const redisRetry = (type: string) => (options: RedisRetryStrategyOptions) => {
-  const wait = 1000; // in milliseconds
-  const maxAttempts = 60;
-
-  if (options.attempt > maxAttempts) {
-    throw new Error(`Failed connecting to redis (${type})`);
-  }
-
-  return wait;
-};
 
 const config: Config = {
   appKey: process.env.APP_KEY,
@@ -75,14 +64,10 @@ const config: Config = {
     : Buffer.from(process.env.PASSPORT_PUBLIC_KEY),
   redis: {
     app: {
-      host: process.env.REDIS_HOST,
-      port: +(process.env.REDIS_PORT || 6379),
-      retry_strategy: redisRetry('app'),
+      url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}/0`,
     },
     notification: {
-      host: process.env.NOTIFICATION_REDIS_HOST,
-      port: +(process.env.NOTIFICATION_REDIS_PORT || 6379),
-      retry_strategy: redisRetry('notification'),
+      url: `redis://${process.env.NOTIFICATION_REDIS_HOST}:${process.env.NOTIFICATION_REDIS_PORT || 6379}/0`,
     },
   },
   server: {
