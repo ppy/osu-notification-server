@@ -93,13 +93,13 @@ export default class UserConnection {
     }
   };
 
-  handleMessage = (data: WebSocket.Data) => {
-    const messsage = parseSocketMessage(data);
-    if (messsage == null) return;
+  handleMessage = (data: WebSocket.RawData) => {
+    const message = parseSocketMessage(data);
+    if (message == null) return;
 
-    if (messsage.event === 'chat.start') {
+    if (message.event === 'chat.start') {
       this.chatActive = true;
-    } else if (messsage.event === 'chat.end') {
+    } else if (message.event === 'chat.end') {
       this.chatActive = false;
     }
   };

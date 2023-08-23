@@ -11,11 +11,11 @@ function isSocketMessage(arg: unknown): arg is SocketMessage {
     && typeof (arg as SocketMessage).event === 'string';
 }
 
-export function parseSocketMessage(data: WebSocket.Data) {
-  if (typeof data !== 'string') return null;
+export function parseSocketMessage(data: WebSocket.RawData) {
+  if (!(data instanceof Buffer)) return null;
 
   try {
-    const json = JSON.parse(data) as unknown;
+    const json = JSON.parse(data.toString()) as unknown;
     if (isSocketMessage(json)) {
       return json;
     }

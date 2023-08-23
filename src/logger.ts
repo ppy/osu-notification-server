@@ -4,18 +4,19 @@
 import config from './config';
 import noop from './noop';
 
-function log(level: string, ...args: any) {
+function log(level: string, ...args: unknown[]) {
+  // eslint-disable-next-line no-console
   return console.log(`[${(new Date()).toJSON()}][${level}]`, ...args);
 }
 
 let debug;
 if (config.debug) {
-  debug = (...args: any) => log('debug', ...args);
+  debug = (...args: unknown[]) => log('debug', ...args);
 } else {
   debug = noop;
 }
 
-const info = (...args: any) => log('info', ...args);
+const info = (...args: unknown[]) => log('info', ...args);
 
 const logger = {debug, info};
 
