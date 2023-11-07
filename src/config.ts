@@ -64,10 +64,10 @@ const config: Config = {
     : Buffer.from(process.env.PASSPORT_PUBLIC_KEY),
   redis: {
     app: {
-      url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}/0`,
+      url: `redis://default:${process.env.REDIS_PASSWORD || ''}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}/${process.env.REDIS_DB || '0'}`,
     },
     notification: {
-      url: `redis://${process.env.NOTIFICATION_REDIS_HOST}:${process.env.NOTIFICATION_REDIS_PORT || 6379}/0`,
+      url: `redis://default:${process.env.NOTIFICATION_REDIS_PASSWORD || ''}@${process.env.NOTIFICATION_REDIS_HOST}:${process.env.NOTIFICATION_REDIS_PORT || 6379}/${process.env.NOTIFICATION_REDIS_DB || '0'}`,
     },
   },
   server: {
