@@ -99,7 +99,7 @@ export default class OAuthVerifier {
           requiresVerification: true,
           scopes: new Set(scopes),
           userId: row.user_id,
-          verified: row.verified, // this should match osu-web AuthApi
+          verified: row.verified,
         };
       }
     }
