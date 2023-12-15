@@ -6,12 +6,11 @@
     "noUnusedLocals": true,
     "outDir": "build",
     "sourceMap": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
+    "strict": true,
     "target": "ES2015",
     "typeRoots": ["./node_modules/@types"]
   },
   "files": [
-    "src/index.ts",
+    "src/index.ts"
   ]
 }
