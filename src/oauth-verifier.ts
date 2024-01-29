@@ -75,7 +75,7 @@ export default class OAuthVerifier {
     interface AccessTokenRow extends mysql.RowDataPacket {
       scopes: string;
       user_id: number;
-      verified: boolean;
+      verified: number;
     }
     const [rows] = await this.db.execute<AccessTokenRow[]>(`
       SELECT scopes, user_id, verified
@@ -99,7 +99,7 @@ export default class OAuthVerifier {
           requiresVerification: true,
           scopes: new Set(scopes),
           userId: row.user_id,
-          verified: row.verified,
+          verified: Boolean(row.verified),
         };
       }
     }
