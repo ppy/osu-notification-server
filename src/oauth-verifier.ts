@@ -75,30 +75,31 @@ export default class OAuthVerifier {
     interface AccessTokenRow extends mysql.RowDataPacket {
       scopes: string;
       user_id: number;
+      verified: boolean;
     }
     const [rows] = await this.db.execute<AccessTokenRow[]>(`
-      SELECT user_id, scopes
+      SELECT scopes, user_id, verified
       FROM oauth_access_tokens
       WHERE revoked = false AND expires_at > now() AND id = ?
     `, [
       oAuthToken,
     ]);
 
-    if (rows.length === 0) {
+    const row = rows[0];
+    if (row == null) {
       throw new Error('token doesn\'t exist');
     }
 
-    const userId = rows[0].user_id;
-    const scopes = JSON.parse(rows[0].scopes) as string[];
+    const scopes = JSON.parse(row.scopes) as string[];
 
     for (const scope of scopes) {
       if (scope === '*' || scope === 'chat.read') {
         return {
           key: `oauth:${oAuthToken}`,
-          requiresVerification: false,
+          requiresVerification: true,
           scopes: new Set(scopes),
-          userId,
-          verified: true, // this should match osu-web AuthApi
+          userId: row.user_id,
+          verified: row.verified,
         };
       }
     }
