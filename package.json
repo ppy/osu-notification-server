@@ -17,10 +17,10 @@
     "cookie": "^0.5.0",
     "dotenv": "^16.3.1",
     "hot-shots": "^10.0.0",
+    "ioredis": "^5.3.2",
     "jsonwebtoken": "^9.0.1",
     "mysql2": "^3.6.0",
     "php-serialize": "^4.1.1",
-    "redis": "^4.6.7",
     "source-map-support": "^0.5.21",
     "typescript": "^5.1.6",
     "ws": "^8.13.0"

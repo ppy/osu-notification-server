@@ -2,14 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import { StatsD } from 'hot-shots';
-import { RedisClientOptions, createClient } from 'redis';
+import { RedisOptions, Redis } from 'ioredis';
 import logger from './logger';
 import Message from './types/message';
 import UserConnection from './user-connection';
 
 interface Params {
   dogstatsd: StatsD;
-  redisConfig: RedisClientOptions;
+  redisConfig: RedisOptions;
 }
 
 export default class RedisSubscriber {
@@ -19,9 +19,8 @@ export default class RedisSubscriber {
 
   constructor(params: Params) {
     this.dogstatsd = params.dogstatsd;
-    this.redis = createClient(params.redisConfig);
-    this.redis.on('error', () => { /* dummy listener to apply reconnectStrategy */ });
-    void this.redis.connect();
+    this.redis = new Redis(params.redisConfig);
+    this.redis.on('message', this.onMessage);
   }
 
   subscribe(channels: string | string[], connection: UserConnection) {
@@ -45,9 +44,7 @@ export default class RedisSubscriber {
     }
 
     if (toSubscribe.length > 0) {
-      for (const channel of toSubscribe) {
-        void this.redis.subscribe(channel, this.onMessage);
-      }
+      void this.redis.subscribe(...toSubscribe);
     }
   }
 
@@ -76,11 +73,11 @@ export default class RedisSubscriber {
     }
 
     if (toUnsubscribe.length > 0) {
-      void this.redis.unsubscribe(toUnsubscribe);
+      void this.redis.unsubscribe(...toUnsubscribe);
     }
   }
 
-  private readonly onMessage = (messageString: string, channel: string) => {
+  private readonly onMessage = (channel: string, messageString: string) => {
     logger.debug(`received message from channel ${channel}`);
 
     const connections = this.userConnections[channel];
