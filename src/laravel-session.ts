@@ -5,12 +5,12 @@ import * as crypto from 'crypto';
 import * as http from 'http';
 import * as url from 'url';
 import * as cookie from 'cookie';
+import { RedisOptions, Redis } from 'ioredis';
 import { unserialize } from 'php-serialize';
-import { RedisClientOptions, createClient as redisCreateClient } from 'redis';
 
 interface Params {
   appKey: string;
-  redisConfig: RedisClientOptions;
+  redisConfig: RedisOptions;
 }
 
 interface EncryptedSession {
@@ -60,9 +60,7 @@ export default class LaravelSession {
   private sessionCookieNameHmac: Buffer;
 
   constructor(params: Params) {
-    this.redis = redisCreateClient(params.redisConfig);
-    this.redis.on('error', () => { /* dummy listener to apply reconnectStrategy */ });
-    void this.redis.connect();
+    this.redis = new Redis(params.redisConfig);
     this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
     // https://github.com/laravel/framework/blob/208c3976f186dcdfa0a434f4092bae7d32928465/src/Illuminate/Cookie/CookieValuePrefix.php
     this.sessionCookieNameHmac = crypto.createHmac('sha1', this.key).update(`${sessionCookieName}v2`).digest();

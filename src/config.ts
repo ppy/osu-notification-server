@@ -4,8 +4,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { RedisOptions } from 'ioredis';
 import { PoolOptions as DbConfig } from 'mysql2';
-import { RedisClientOptions } from 'redis';
 import { ServerOptions as ServerConfig } from 'ws';
 
 interface Config {
@@ -25,8 +25,8 @@ interface DbNames {
 }
 
 interface RedisConfigs {
-  app: RedisClientOptions;
-  notification: RedisClientOptions;
+  app: RedisOptions;
+  notification: RedisOptions;
 }
 
 let baseDir = process.env.WEBSOCKET_BASEDIR;
@@ -64,20 +64,16 @@ const config: Config = {
     : Buffer.from(process.env.PASSPORT_PUBLIC_KEY),
   redis: {
     app: {
-      database: +(process.env.REDIS_DB || 0),
+      db: +(process.env.REDIS_DB || 0),
+      host: process.env.REDIS_HOST || '127.0.0.1',
       password: process.env.REDIS_PASSWORD,
-      socket: {
-        host: process.env.REDIS_HOST || '127.0.0.1',
-        port: +(process.env.REDIS_PORT || 6379),
-      },
+      port: +(process.env.REDIS_PORT || 6379),
     },
     notification: {
-      database: +(process.env.NOTIFICATION_REDIS_DB || 0),
+      db: +(process.env.NOTIFICATION_REDIS_DB || 0),
+      host: process.env.NOTIFICATION_REDIS_HOST || '127.0.0.1',
       password: process.env.NOTIFICATION_REDIS_PASSWORD,
-      socket: {
-        host: process.env.NOTIFICATION_REDIS_HOST || '127.0.0.1',
-        port: +(process.env.NOTIFICATION_REDIS_PORT || 6379),
-      },
+      port: +(process.env.NOTIFICATION_REDIS_PORT || 6379),
     },
   },
   server: {
