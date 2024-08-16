@@ -11,6 +11,7 @@ import { unserialize } from 'php-serialize';
 interface Params {
   appKey: string;
   redisConfig: RedisOptions;
+  sessionPrefix: string;
 }
 
 interface EncryptedSession {
@@ -46,8 +47,6 @@ function isEncryptedSession(arg: unknown): arg is EncryptedSession {
     typeof arg.mac === 'string';
 }
 
-const sessionCookieName = 'osu_session';
-
 const getCookie = (req: http.IncomingMessage, key: string) => {
   if (req.headers.cookie != null) {
     return cookie.parse(req.headers.cookie)[key];
@@ -57,17 +56,20 @@ const getCookie = (req: http.IncomingMessage, key: string) => {
 export default class LaravelSession {
   private key: Buffer;
   private redis;
+  private sessionCookieName;
   private sessionCookieNameHmac: Buffer;
 
   constructor(params: Params) {
     this.redis = new Redis(params.redisConfig);
     this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
+    this.sessionCookieName = `${params.sessionPrefix}osu_session`;
+
     // https://github.com/laravel/framework/blob/208c3976f186dcdfa0a434f4092bae7d32928465/src/Illuminate/Cookie/CookieValuePrefix.php
-    this.sessionCookieNameHmac = crypto.createHmac('sha1', this.key).update(`${sessionCookieName}v2`).digest();
+    this.sessionCookieNameHmac = crypto.createHmac('sha1', this.key).update(`${this.sessionCookieName}v2`).digest();
   }
 
   async getSessionDataFromRequest(req: http.IncomingMessage): Promise<Session | null> {
-    const key = this.keyFromSession(getCookie(req, sessionCookieName));
+    const key = this.keyFromSession(getCookie(req, this.sessionCookieName));
 
     if (key == null) {
       return null;
