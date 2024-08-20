@@ -18,6 +18,7 @@ interface Config {
   oauthPublicKey: Buffer;
   redis: RedisConfigs;
   server: ServerConfig;
+  sessionPrefix: string;
 }
 
 interface DbNames {
@@ -80,6 +81,7 @@ const config: Config = {
     host: process.env.NOTIFICATION_SERVER_LISTEN_HOST || '127.0.0.1',
     port: +(process.env.NOTIFICATION_SERVER_LISTEN_PORT || 2345),
   },
+  sessionPrefix: process.env.SESSION_PREFIX ?? '',
 };
 
 export default config;
