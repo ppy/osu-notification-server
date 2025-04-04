@@ -55,6 +55,7 @@ const getUserSession = async (req: http.IncomingMessage) => {
 
 // variables
 const authenticationFailedMessage = JSON.stringify({ error: 'authentication failed' });
+const connectionReadyMessage = JSON.stringify({ event: 'connection.ready' });
 const db = mysql.createPool(config.db);
 const dogstatsd = new StatsD({ prefix: 'osu.notification.' });
 const redisSubscriber = new RedisSubscriber({ dogstatsd, redisConfig: config.redis.notification });
@@ -76,6 +77,7 @@ wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
     const connection = new UserConnection({ db, redisSubscriber, session, ws });
 
     connection.boot();
+    ws.send(connectionReadyMessage, noop);
   }).catch(() => {
     ws.send(authenticationFailedMessage, noop);
     ws.terminate();
