@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- node 10+
+- node 26+
 
 ## Setup
 

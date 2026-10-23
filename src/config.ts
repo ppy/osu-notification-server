@@ -30,7 +30,7 @@ interface RedisConfigs {
   notification: RedisOptions;
 }
 
-const baseDir = process.env.WEBSOCKET_BASEDIR ?? path.resolve(`${__dirname}/..`);
+const baseDir = process.env.WEBSOCKET_BASEDIR ?? path.resolve(`${import.meta.dirname}/..`);
 
 const env = process.env.APP_ENV || 'development';
 

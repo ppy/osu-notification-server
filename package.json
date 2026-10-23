@@ -1,5 +1,6 @@
 {
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=26"
   },
@@ -7,21 +8,20 @@
     "build": "tsc",
     "lint": "eslint --cache 'src/**/*.{js,ts}' '*.js'",
     "serve": "node build/index.js",
-    "watch": "yarn run build --watch"
+    "watch": "npm run build --watch"
   },
   "name": "osu-notification-server",
   "license": "AGPL-3.0",
   "dependencies": {
     "@types/cookie": "^0.5.1",
-    "@types/jsonwebtoken": "^9.0.2",
-    "@types/mysql2": "types/mysql2",
+    "@types/jsonwebtoken": "^9.0.3",
     "@types/node": "^26.6.5",
     "@types/ws": "^8.5.5",
     "cookie": "^0.5.0",
     "dotenv": "^16.3.1",
-    "hot-shots": "^10.0.0",
+    "hot-shots": "^17.1.1",
     "ioredis": "^5.3.2",
-    "jsonwebtoken": "^9.0.1",
+    "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.6.0",
     "php-serialize": "^4.1.1",
     "source-map-support": "^0.5.21",
@@ -29,11 +29,13 @@
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
-    "eslint": "^8.47.0",
-    "eslint-plugin-import": "^2.28.1",
-    "eslint-plugin-jsdoc": "^46.5.0",
-    "eslint-plugin-typescript-sort-keys": "^2.3.0"
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.13.0",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-jsdoc": "^65.4.2",
+    "eslint-plugin-perfectionist": "^5.13.0",
+    "globals": "^17.13.0",
+    "typescript-eslint": "^8.72.0"
   }
 }
