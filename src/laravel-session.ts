@@ -3,7 +3,6 @@
 
 import * as crypto from 'crypto';
 import * as http from 'http';
-import * as url from 'url';
 import * as cookie from 'cookie';
 import { RedisOptions, Redis } from 'ioredis';
 import { unserialize } from 'php-serialize';
@@ -131,44 +130,22 @@ export default class LaravelSession {
   }
 
   async verifyRequest(req: http.IncomingMessage) {
-    if (req.url == null) {
-      return null;
+    const fetchSite = req.headers['sec-fetch-site'];
+    if (fetchSite !== 'same-site' && fetchSite !== 'same-origin') {
+      throw new Error('invalid origin');
     }
 
     const session = await this.getSessionDataFromRequest(req);
 
-    if (session == null || session.userId == null) {
-      return null;
-    }
-
-    const params = url.parse(req.url, true).query;
-
-    if (typeof params.csrf !== 'string' || params.csrf === '') {
-      throw new Error('missing csrf token');
-    }
-
-    const csrf = Buffer.from(params.csrf);
-
-    let hasValidToken;
-
-    try {
-      hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'unknown';
-      throw new Error(`failed checking csrf token: ${errorMessage}`, { cause: err });
-    }
-
-    if (hasValidToken) {
-      return {
+    return session == null || session.userId == null
+      ? null
+      : {
         key: session.key,
         requiresVerification: session.requiresVerification,
         scopes: new Set(['*']),
         userId: session.userId,
         verified: session.verified,
       };
-    } else {
-      throw new Error('invalid csrf token');
-    }
   }
 
   private decrypt(encryptedSession: EncryptedSession) {
