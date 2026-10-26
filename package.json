@@ -1,5 +1,8 @@
 {
   "private": true,
+  "engines": {
+    "node": ">=26"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache 'src/**/*.{js,ts}' '*.js'",
@@ -12,7 +15,7 @@
     "@types/cookie": "^0.5.1",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/mysql2": "types/mysql2",
-    "@types/node": "^18.0.0",
+    "@types/node": "^26.6.5",
     "@types/ws": "^8.5.5",
     "cookie": "^0.5.0",
     "dotenv": "^16.3.1",
@@ -22,7 +25,7 @@
     "mysql2": "^3.6.0",
     "php-serialize": "^4.1.1",
     "source-map-support": "^0.5.21",
-    "typescript": "^5.1.6",
+    "typescript": "^5.9.3",
     "ws": "^8.13.0"
   },
   "devDependencies": {

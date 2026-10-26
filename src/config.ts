@@ -30,21 +30,18 @@ interface RedisConfigs {
   notification: RedisOptions;
 }
 
-let baseDir = process.env.WEBSOCKET_BASEDIR;
-
-if (baseDir == null) {
-  baseDir = path.resolve(`${__dirname}/..`);
-}
+const baseDir = process.env.WEBSOCKET_BASEDIR ?? path.resolve(`${__dirname}/..`);
 
 const env = process.env.APP_ENV || 'development';
 
 dotenv.config({ path: `${baseDir}/.env.${env}` });
 dotenv.config({ path: `${baseDir}/.env` });
 
-if (typeof process.env.APP_KEY !== 'string') {
+if (process.env.APP_KEY == null) {
   throw new Error('APP_KEY environment variable is not set.');
 }
 
+// config uses || instead of ?? to handle empty strings.
 const config: Config = {
   appKey: process.env.APP_KEY,
   baseDir,

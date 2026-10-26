@@ -1,8 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import config from './config';
-import noop from './noop';
+import config from './config.js';
+import noop from './noop.js';
 
 function log(level: string, ...args: unknown[]) {
   // eslint-disable-next-line no-console
