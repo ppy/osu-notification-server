@@ -3,16 +3,10 @@
 
 import * as crypto from 'crypto';
 import * as http from 'http';
-import * as url from 'url';
 import * as cookie from 'cookie';
-import { RedisOptions, Redis } from 'ioredis';
+import { Redis } from 'ioredis';
 import { unserialize } from 'php-serialize';
-
-interface Params {
-  appKey: string;
-  redisConfig: RedisOptions;
-  sessionPrefix: string;
-}
+import config from './config.js';
 
 interface EncryptedSession {
   iv: string;
@@ -59,10 +53,10 @@ export default class LaravelSession {
   private sessionCookieName;
   private sessionCookieNameHmac: Buffer;
 
-  constructor(params: Params) {
-    this.redis = new Redis(params.redisConfig);
-    this.key = Buffer.from(params.appKey.slice('base64:'.length), 'base64');
-    this.sessionCookieName = `${params.sessionPrefix}osu_session`;
+  constructor() {
+    this.redis = new Redis(config.redis.app);
+    this.key = Buffer.from(config.appKey.slice('base64:'.length), 'base64');
+    this.sessionCookieName = `${config.sessionPrefix}osu_session`;
 
     // https://github.com/laravel/framework/blob/208c3976f186dcdfa0a434f4092bae7d32928465/src/Illuminate/Cookie/CookieValuePrefix.php
     this.sessionCookieNameHmac = crypto.createHmac('sha1', this.key).update(`${this.sessionCookieName}v2`).digest();
@@ -131,44 +125,22 @@ export default class LaravelSession {
   }
 
   async verifyRequest(req: http.IncomingMessage) {
-    if (req.url == null) {
-      return null;
+    const reqOrigin = req.headers.origin;
+    if (reqOrigin !== config.appUrl) {
+      throw new Error('invalid origin');
     }
 
     const session = await this.getSessionDataFromRequest(req);
 
-    if (session == null || session.userId == null) {
-      return null;
-    }
-
-    const params = url.parse(req.url, true).query;
-
-    if (typeof params.csrf !== 'string' || params.csrf === '') {
-      throw new Error('missing csrf token');
-    }
-
-    const csrf = Buffer.from(params.csrf);
-
-    let hasValidToken;
-
-    try {
-      hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'unknown';
-      throw new Error(`failed checking csrf token: ${errorMessage}`, { cause: err });
-    }
-
-    if (hasValidToken) {
-      return {
+    return session == null || session.userId == null
+      ? null
+      : {
         key: session.key,
         requiresVerification: session.requiresVerification,
         scopes: new Set(['*']),
         userId: session.userId,
         verified: session.verified,
       };
-    } else {
-      throw new Error('invalid csrf token');
-    }
   }
 
   private decrypt(encryptedSession: EncryptedSession) {

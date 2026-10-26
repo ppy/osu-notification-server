@@ -59,11 +59,7 @@ const db = mysql.createPool(config.db);
 const dogstatsd = new StatsD({ prefix: 'osu.notification.' });
 const redisSubscriber = new RedisSubscriber({ dogstatsd, redisConfig: config.redis.notification });
 const oAuthVerifier = new OAuthVerifier({ db, publicKey: config.oauthPublicKey });
-const laravelSession = new LaravelSession({
-  appKey: config.appKey,
-  redisConfig: config.redis.app,
-  sessionPrefix: config.sessionPrefix,
-});
+const laravelSession = new LaravelSession();
 
 // initialise server
 const wss = new WebSocketServer(config.server);

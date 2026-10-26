@@ -10,6 +10,7 @@ import { ServerOptions as ServerConfig } from 'ws';
 
 interface Config {
   appKey: string;
+  appUrl: string;
   baseDir: string;
   db: DbConfig;
   dbName: DbNames;
@@ -41,9 +42,14 @@ if (process.env.APP_KEY == null) {
   throw new Error('APP_KEY environment variable is not set.');
 }
 
+if (process.env.APP_URL == null) {
+  throw new Error('APP_URL environment variable is not set.');
+}
+
 // config uses || instead of ?? to handle empty strings.
 const config: Config = {
   appKey: process.env.APP_KEY,
+  appUrl: process.env.APP_URL.replace(/\/$/, ''),
   baseDir,
   db: {
     database: process.env.DB_DATABASE || 'osu',
