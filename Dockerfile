@@ -3,7 +3,7 @@ FROM node:26-alpine
 WORKDIR /app
 
 # rarely changed dependencies installation
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # actual build

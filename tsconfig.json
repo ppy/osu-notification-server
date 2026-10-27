@@ -9,7 +9,6 @@
     "noUnusedLocals": true,
     "noEmitOnError": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
     "types": ["node"]
   },
   "include": [
