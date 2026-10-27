@@ -49,7 +49,7 @@ function isEncryptedSession(arg: unknown): arg is EncryptedSession {
 
 const getCookie = (req: http.IncomingMessage, key: string) => {
   if (req.headers.cookie != null) {
-    return cookie.parse(req.headers.cookie)[key];
+    return cookie.parseCookie(req.headers.cookie)[key];
   }
 };
 

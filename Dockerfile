@@ -1,7 +1,5 @@
 FROM node:26-alpine
 
-RUN apk add --no-cache git
-
 WORKDIR /app
 
 # rarely changed dependencies installation
