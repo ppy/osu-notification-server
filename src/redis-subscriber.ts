@@ -3,9 +3,9 @@
 
 import { StatsD } from 'hot-shots';
 import { RedisOptions, Redis } from 'ioredis';
-import logger from './logger';
-import Message from './types/message';
-import UserConnection from './user-connection';
+import logger from './logger.js';
+import Message from './types/message.js';
+import UserConnection from './user-connection.js';
 
 interface Params {
   dogstatsd: StatsD;

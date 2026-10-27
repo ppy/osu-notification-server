@@ -4,20 +4,19 @@
 import * as http from 'http';
 import { StatsD } from 'hot-shots';
 import * as mysql from 'mysql2/promise';
-import 'source-map-support/register';
-import * as WebSocket from 'ws';
-import config from './config';
-import LaravelSession from './laravel-session';
-import logger from './logger';
-import noop from './noop';
-import OAuthVerifier from './oauth-verifier';
-import RedisSubscriber from './redis-subscriber';
-import UserSession from './types/user-session';
-import UserConnection from './user-connection';
+import { WebSocketServer } from 'ws';
+import config from './config.js';
+import LaravelSession from './laravel-session.js';
+import logger from './logger.js';
+import noop from './noop.js';
+import OAuthVerifier from './oauth-verifier.js';
+import RedisSubscriber from './redis-subscriber.js';
+import UserSession from './types/user-session.js';
+import UserConnection from './user-connection.js';
 
 // helper functions
 const getIp = (req: http.IncomingMessage) => {
-  let ret = req.connection.remoteAddress;
+  let ret = req.socket.remoteAddress;
 
   const forwardedFor = req.headers['x-forwarded-for'];
   if (typeof forwardedFor === 'string' && forwardedFor !== '') {
@@ -67,10 +66,10 @@ const laravelSession = new LaravelSession({
 });
 
 // initialise server
-const wss = new WebSocket.Server(config.server);
+const wss = new WebSocketServer(config.server);
 logger.info(`listening on ${config.server.host}:${config.server.port}`);
 
-wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
+wss.on('connection', (ws, req) => {
   ws.on('error', (error) => logger.info('websocket error:', error));
 
   getUserSession(req).then((session) => {

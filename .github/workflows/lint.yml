@@ -9,15 +9,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
 
       - name: Setup node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v7
         with:
-          cache: 'yarn'
-          node-version: '18'
+          cache: 'npm'
+          node-version-file: 'package.json'
 
       - name: Install js dependencies
-        run: yarn --frozen-lockfile
+        run: npm ci
 
-      - run: yarn lint --quiet
+      - run: npm run lint --quiet

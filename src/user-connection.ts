@@ -2,13 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import * as mysql from 'mysql2/promise';
-import * as WebSocket from 'ws';
-import logger from './logger';
-import noop from './noop';
-import RedisSubscriber from './redis-subscriber';
-import Message from './types/message';
-import { parseSocketMessage } from './types/socket-message';
-import UserSession from './types/user-session';
+import WebSocket from 'ws';
+import logger from './logger.js';
+import noop from './noop.js';
+import RedisSubscriber from './redis-subscriber.js';
+import Message from './types/message.js';
+import { parseSocketMessage } from './types/socket-message.js';
+import UserSession from './types/user-session.js';
 
 interface Params {
   db: mysql.Pool;

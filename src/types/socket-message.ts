@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import * as WebSocket from 'ws';
-import logger from '../logger';
+import logger from '../logger.js';
 
 function isSocketMessage(arg: unknown): arg is SocketMessage {
   return typeof arg === 'object'

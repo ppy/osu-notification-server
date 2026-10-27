@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
-    "lib": ["es2015"],
-    "module": "CommonJS",
-    "noImplicitAny": true,
-    "noUnusedLocals": true,
+    "target": "es2022",
+    "module": "nodenext",
+    "rootDir": "src",
     "outDir": "build",
     "sourceMap": true,
     "strict": true,
-    "target": "ES2015",
-    "typeRoots": ["./node_modules/@types"]
+    "noUnusedLocals": true,
+    "noEmitOnError": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
   },
-  "files": [
-    "src/index.ts"
+  "include": [
+    "src/**/*.ts"
   ]
 }

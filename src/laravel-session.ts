@@ -49,7 +49,7 @@ function isEncryptedSession(arg: unknown): arg is EncryptedSession {
 
 const getCookie = (req: http.IncomingMessage, key: string) => {
   if (req.headers.cookie != null) {
-    return cookie.parse(req.headers.cookie)[key];
+    return cookie.parseCookie(req.headers.cookie)[key];
   }
 };
 
@@ -100,7 +100,7 @@ export default class LaravelSession {
       encryptedSession = JSON.parse(
         Buffer.from(session, 'base64').toString(),
       );
-    } catch (err) {
+    } catch {
       throw new Error('Failed parsing session data');
     }
 
@@ -155,7 +155,7 @@ export default class LaravelSession {
       hasValidToken = crypto.timingSafeEqual(Buffer.from(session.csrf), csrf);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'unknown';
-      throw new Error(`failed checking csrf token: ${errorMessage}`);
+      throw new Error(`failed checking csrf token: ${errorMessage}`, { cause: err });
     }
 
     if (hasValidToken) {
