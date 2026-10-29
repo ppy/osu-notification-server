@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 import * as http from 'http';
-import * as url from 'url';
 import * as jwt from 'jsonwebtoken';
 import * as mysql from 'mysql2/promise';
 
@@ -41,10 +40,10 @@ export default class OAuthVerifier {
         return;
       }
 
-      const params = url.parse(req.url, true).query;
+      const paramToken = new URL(req.url, 'http://localhost').searchParams.get('access_token');
 
-      if (typeof params.access_token === 'string') {
-        token = params.access_token;
+      if (typeof paramToken === 'string') {
+        token = paramToken;
       }
     } else {
       const matches = /^Bearer (.+)$/.exec(authorization);
